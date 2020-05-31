@@ -1,0 +1,429 @@
++b(single)
+  // region parent rules 
+  padding: 40px
+  background: var(--white)
+  box-shadow: 1.6px 1.6px 16px var(--shadow)
+  position: relative
+  display: block
+  width: 1000px
+  margin: 0 auto 22.4px
+  +max(1200)
+    width: 100%
+    padding: 48px
+  +max(750)
+    margin-top: 24px
+    padding: 32px
+  // endregion 
+  // region elements 
+  +e(row)
+    display: flex
+    flex-wrap: wrap
+    margin: 32px #{-$gap-single-page} 32px
+    padding: 0
+    +max(767)
+      margin: 32px -8px 32px
+    
+    +m(table)
+      display: block
+      margin: 32px 0 32px
+      
+    +m(info)
+      justify-content: space-between
+      .single__column
+        width: 25%
+        display: block
+        h5
+          padding-bottom: 16px
+        +max(991)
+          width: 50%
+        +max(767)
+          width: 100%
+        &:first-child
+          padding-right: 60px
+          
+    +m(chart)
+      .single__column
+        +max(767)
+          padding: 16px 8px !important
+          
+        +m(lg)
+          width: 75%
+          margin-top: -28px
+          +max(1200)
+            width: 100%
+          +max(767)
+            width: 100%
+        +m(sm)
+          width: 25%
+          +max(1200)
+            width: 100%
+            margin-top: 1.6px
+          +min-max(767, 1200)
+            .details
+              display: flex
+              flex-wrap: wrap
+              justify-content: space-between
+            .details__column
+              width: calc(50% - #{$gap-single-page})
+              &:not(:last-child)
+                margin-top: 0
+              &:last-child
+                margin-left: auto
+      .chart-wrapper
+        transform: translateY(-2px)
+        
+      .chart
+        &:first-child
+          margin-top: 28px
+          +max(767)
+            margin-top: 0
+            
+    +m(social)
+      margin: 32px 0 0
+      +max($breakpoint-single)
+        .more--rounded
+          margin-top: 32px
+    
+    +m(wallets)
+      margin: 48px 0
+      flex-wrap: nowrap
+      +max(450)
+        flex-wrap: wrap
+        width: 100%
+  
+  +e(column)
+    padding: $gap-single-page
+    +max(767)
+      padding: 8px
+  
+  +e(column-item)
+    &:not(:first-child)
+      margin-top: 24px
+  
+  +e(link-wrapper)
+    margin-top: 16px
+  
+  +e(link)
+    text-decoration: underline
+    color: var(--blue)
+    font-size: 12px
+    display: block
+    &:not(:first-child)
+      margin-top: 5px
+  
+  +e(header)
+    display: flex
+    position: relative
+    align-items: flex-start
+    flex-wrap: nowrap
+    min-height: 26px
+    
+  +e(label)
+    color: var(--gray-dark)
+    margin-bottom: 8px
+    display: inline-flex
+    align-items: center
+    align-self: baseline
+    +m(dropdown)
+      display: inline-block
+      
+    +between($e:row,$m:wallets)
+      margin-bottom: 11px
+      margin-right: 15px
+      line-height: 27px
+      +max(450)
+        margin-bottom: 15px !important
+        
+    +between($b:similar-coins)
+      margin-right: 15px
+      margin-bottom: 0
+      line-height: 26px
+
+  // endregion 
+  // region classes 
+  .github-details
+    .item-right
+      color: var(--gray-dark)
+  
+  .wallets
+    margin-right: -16px
+    +max(767)
+      margin-right: -9px
+    label
+      margin-bottom: 0
+  
+  .similar-coins
+    height: 28px
+    max-width: 723px
+    
+  .similar-coins, .wallets
+    display: flex
+    align-items: flex-start
+    flex-wrap: wrap
+    overflow: hidden
+    +max(310)
+      display: none
+    span
+      vertical-align: text-top
+    .coin
+      background: #F5F9FA
+      color: #B1CADF
+    .wallet
+      border: 1px solid var(--color)
+      color: var(--color)
+    .coin, .wallet
+      line-height: 26px
+      display: inline-flex
+      align-items: center
+      padding: 0 10px
+      text-transform: uppercase
+      margin-right: 15px
+      font-size: 13.6px
+      border-radius: 6px
+      margin-bottom: 11px
+      &.right-coin:first-of-type,
+      &.right-coin ~ *
+        position: absolute
+        height: 0
+        width: 0
+        font-size: 0
+  
+  .edit
+    position: absolute
+    right: 0
+    top: 0
+    cursor: pointer
+    display: flex
+    align-items: center
+    min-height: 27px
+    align-self: flex-start
+    span
+      display: none
+    svg
+      margin-left: 8px
+      width: 28px !important
+      height: 28px !important
+      margin-bottom: 4px
+      &:hover
+        .fil0
+          fill: #f4f4fe
+    a
+      text-decoration: none
+  
+  .founder-icon
+    display: inline-block
+    line-height: 0
+    transform: translateY(-1px) translateX(4px)
+    svg
+      width: 14px
+      height: 14px
+  // endregion 
+  // region blocks 
+  +b(line)
+    position: relative
+    height: 2px
+    width: 100%
+    background: var(--gray-mid)
+    overflow: hidden
+    margin-top: 3px
+    
+    +e(progress)
+      position: absolute
+      width: 100%
+      background: var(--blue-light-3)
+      height: 100%
+      left: 0
+      transform: translateX(-100%)
+  // endregion 
+  
++b(table)
+  // region parent rules 
+  overflow: auto
+  position: relative
+  // endregion 
+  // region variables 
+  $title-size: 13px
+  $col-size: 14px
+  $number: 2em
+  $name: 160px
+  $pair: 120px
+  $vol24: 150px
+  $price: 80px
+  $vol-percent: 110px
+  $category: 100px
+  $fee: 110px
+  $updated: 180px
+  // endregion 
+  // region elements 
+  +e(row)
+    display: flex
+    &:first-child
+      color: var(--color)
+      font-size: $title-size
+    &:not(:first-child)
+      font-size: $col-size
+    &:last-child
+      padding-bottom: 8px
+     
+  +e(col)
+    padding: 9px 10px 8px
+    line-height: 1
+    border-bottom: 1px solid var(--gray-border)
+    white-space: nowrap !important
+    overflow: hidden
+    text-overflow: ellipsis
+    .night-mode-on &
+      border-bottom: 1px solid var(--night-blue-light-transparent)
+    &:first-child
+      color: var(--color)
+    &:not(:first-child):not(:nth-child(2))
+      text-align: right
+    &:not(:last-child)
+      border-right: none
+    .table__row:last-child &
+      border-bottom: none
+    .table__row:not(:first-child) &
+      border-top: none
+    
+    +m(number)
+      min-width: $number
+      padding-left: 5px
+      padding-right: 0
+    
+    +m(name)
+      min-width: $name
+      padding-left: 10px
+      text-align: left
+      a
+        color: inherit
+    
+    +m(pair)
+      min-width: $pair
+    
+    +m(vol24)
+      min-width: $vol24
+    
+    +m(price)
+      min-width: $price
+    
+    +m(vol-percent)
+      min-width: $vol-percent
+    
+    +m(category)
+      min-width: $category
+    
+    +m(fee)
+      min-width: $fee
+    
+    +m(updated)
+      min-width: $updated
+      padding-right: 43px
+      .no-js &
+        padding-right: 0
+  // endregion
+  // region table modifications 
+  .os-scrollbar-handle
+    .night-mode-on &
+      background: var(--color) !important
+      
+  &:after
+    content: ""
+    width: 10%
+    height: 100%
+    position: absolute
+    top: 0
+    right: 0
+    background: linear-gradient(to right, transparent, #ffffff 99%)
+    z-index: 3
+    pointer-events: none
+    .no-js &
+      display: none
+  // endregion 
+  
++b(media)
+  // region parent rules 
+  width: 100%
+  line-height: 1
+  // endregion 
+  // region elements 
+  +e(heading)
+    margin-top: 16px
+    color: var(--color)
+    font-weight: bold
+    margin-bottom: 16px
+  
+  +e(item)
+    display: flex
+    margin-top: 7px
+    flex-wrap: nowrap
+    align-items: flex-start
+    padding-bottom: 5px
+    &:not(:last-child)
+      border-bottom: 1px solid var(--gray-border)
+      .night-mode-on &
+        border-bottom: 1px solid var(--night-blue-light-transparent)
+    +max($breakpoint-single)
+      flex-wrap: wrap
+      &:not(:last-child)
+        margin-bottom: 25px
+    +max($breakpoint-single)
+      &:last-child
+        border-bottom: 1px solid var(--gray-border)
+        .night-mode-on &
+          border-bottom: 1px solid var(--night-blue-light-transparent)
+  
+  +e(col)
+    +m(number)
+      width: 30px
+      min-width: 30px
+      margin-right: 20px
+    +m(title)
+      flex-grow: 1
+      margin-right: 20px
+      +max($breakpoint-single)
+        order: -1
+        width: 100%
+        max-width: 100%
+        margin-bottom: 12px
+    +m(messages)
+      display: flex
+      align-items: center
+      margin-left: auto
+      justify-content: flex-end
+      width: 70px
+      min-width: 70px
+  
+  +e(title)
+    +m(main)
+      font-size: 16px
+    +m(second)
+      font-size: 14px
+      margin-top: 5px
+      color: var(--color)
+    +m(dim)
+      opacity: 0.5
+      
+  +e(link)
+    +m(main)
+      color: inherit
+      
+  +e(number)
+    color: var(--color)
+    font-size: 13px
+    line-height: 18px
+    font-weight: bold
+  
+  +e(icon)
+    margin-left: 8px
+    opacity: 0.5
+  
+    svg
+      display: block
+      width: 16px
+      height: 16px
+      margin-bottom: 1px
+    
+    polygon
+      //
+      fill: var(--color)
+  // endregion 

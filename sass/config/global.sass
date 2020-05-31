@@ -1,0 +1,395 @@
+// SCROLLBAR FIX 
+.os-scrollbar-handle
+  background: var(--blue-light-3) !important
+  &:hover
+    background: var(--blue-light-2) !important
+ 
+// NAVIGATION 
+.icon--info
+  filter: drop-shadow(0px 1px 10px rgba(0, 0, 0, 0.05))
+  position: relative
+  z-index: 100
+
+.icon--theme
+  filter: drop-shadow(0px 1px 10px rgba(0, 0, 0, 0.05))
+
+  circle
+    fill: #fff
+    fill-opacity: 1
+
+  path
+    //
+    fill: var(--gray)
+
++b(navigation)
+  position: relative
+  z-index: 2
+  box-sizing: border-box
+  display: flex
+  justify-content: flex-end
+  align-self: center
+  align-items: center
+  user-select: none
+  +e(item)
+    display: inline-block
+    &.next,
+    &.prev
+      width: 25px
+      height: 25px
+      transition: .25s ease filter
+      &:hover
+        filter:  brightness(1.25)
+    &.next
+      margin-left: -1px
+    &.break
+      margin: 0 10px 0 5px
+      background: var(--blue)
+    &.disabled
+      cursor: default
+      &:hover
+        filter: none !important
+      path
+        fill: #b0bcc4
+    svg
+      width: 25px
+      height: 25px
+    
+// WRAPPER 
+.wrapper
+  min-height: 100%
+  display: flex
+  flex-wrap: wrap
+  justify-content: flex-start
+  flex-direction: column
+  margin: auto
+  width: 90%
+  background-color: var(--gray)
+  position: static
+  +max(700)
+    width: 100%
+  +min-max(400,550)
+    width: $width-toolbar-mini
+  +m(single)
+    width: 90%
+    +max(767)
+      width: 70%
+    +max(600)
+      width: 100%
+
+.descryptors-grid
+  width: 100%
+  margin-bottom: 24px
+
+// LOGO 
+.logo
+  cursor: pointer
+  .logo__text
+    +max(991)
+      display: none
+  svg
+    display: block
+    width: 175px
+    position: absolute
+    +max(991)
+      width: 250px !important
+
+  .logo-wrapper
+    width: 175px
+    height: 39px
+    position: relative
+    +max(991)
+      width: 50px !important
+      overflow: hidden
+      transform: translateY(3px)
+
+.header
+  .logo__text
+    fill: var(--dark)
+  .logo__icon
+    fill: var(--blue)
+
+.footer
+  .logo
+    display: inline-block
+  .logo__text, .logo__icon
+    fill: #fff
+    
+// INFO ITEMS 
+.name-wrapper
+  display: inline
+  line-height: 17px
+  a
+    color: var(--dark)
+
+.website
+  position: absolute
+  transform: translate(137%, 20%)
+  font-size: unset !important
+  display: flex
+  bottom: 8px
+  right: 0
+  justify-content: center
+  align-items: center
+  .homepage-icon
+    opacity: 0.6
+    display: flex
+    svg
+      width: 13px
+      height: 13px
+    .homepage-icon-path
+      fill: var(--blue)
+      fill-opacity: 1
+
+.price-down
+  //
+  color: var(--pink)
+
+.price-up
+  //
+  color: var(--green)
+
+// RATING 
++b(rating)
+  box-sizing: border-box
+  text-align: center
+  font-size: 8px
+  +e(wrapper)
+    font-family: Pixelmix, sans-serif
+    margin-left: 4.8px
+    color: var(--gray-dark)
+    transform: translateY(-100%)
+    display: inline-flex
+    justify-content: center
+    align-items: center
+    position: relative
+
+// DETAILS 
++b(details)
+  +e(column)
+    &:not(:first-child)
+      margin-top: 24px
+      +min-max(767, 1200)
+        margin-top: 0
+
+  +e(row)
+    display: flex
+    justify-content: space-between
+    align-items: center
+    +m(big)
+      font-size: 18px
+      margin-bottom: 8px
+    +m(small)
+      font-size: 12px
+      margin-top: 4px
+    +m(middle)
+      font-size: 15px
+      min-height: 18px
+      +min-max(550, 571)
+        font-size: 11px
+      +max(320)
+        font-size: 10px
+
+  +e(left)
+    margin-right: 8px
+    
+  +e(middle)
+    border: 0 dotted
+    border-bottom-width: 1px
+    flex-grow: 1
+    opacity: 0.3
+    align-self: flex-end
+    margin-right: 8px
+    margin-bottom: 0.32px
+    
+  +m(github)
+    white-space: nowrap
+    
+  +e(updated)
+    color: var(--gray-dark)
+    display: block
+    margin-bottom: 8px
+    font-size: 12px
+    .night-mode-on &
+      color: var(--night-light-2)
+    
+  .single__label + .details__row
+    //
+    margin-top: 0
+// MORE 
++b(more)
+  cursor: pointer
+  border-radius: 50px
+  font-size: 13px
+  display: inline-flex
+  align-items: center
+  
+  +m(dots)
+    line-height: 26px
+    padding: 0 10px
+    display: inline-flex
+    align-items: center
+    border-radius: 6px
+    border: none
+    font-size: 24px
+    justify-content: center
+    span
+      transform: translateY(-3px)
+  
+  +m(bg)
+    color: var(--badge-color)
+    background: var(--badge-bg)
+
+  +m(transparent)
+    color: var(--gray-dark)
+    border: 1px solid var(--color)
+
+  +m(similar)
+    margin-right: 65px
+    
+    +max(310)
+      display: none
+  
+  +m(number)
+    padding: 2px 10px 0
+    height: 21px
+    margin-top: 10px
+    color: var(--badge-color)
+    background: var(--badge-bg)
+    
+  +m(rounded)
+    cursor: pointer
+    border: 1px solid var(--color)
+    color: var(--color)
+    display: inline-block
+    position: relative
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 16px
+    padding: 10px 25px
+    line-height: 1
+    border-radius: 50px
+    min-width: 120px
+    text-align: center
+    &:hover
+      color: var(--blue)
+      border-color: var(--blue)
+    .night-mode-on &
+      &:hover
+        color: var(--white)
+        border-color: var(--white)
+  
+// CHARTS 
+.chart
+  width: 100%
+  position: relative
+  font-size: 0
+
+.period-wrapper
+  text-align: center
+  margin-bottom: 12px
+  a
+    font-size: 12px
+    margin-left: 16px
+    opacity: 0.8
+    text-decoration: unset !important
+    z-index: 2
+    user-select: none
+    &.active
+      position: relative
+      &:after
+        content: ""
+        background: #F5F9FA
+        position: absolute
+        top: 50%
+        left: 50%
+        transform: translate(-50%, -53%)
+        width: 25px
+        height: 25px
+        z-index: -1
+        border-radius: 50%
+
+.placeholder
+  background-color: var(--gray-mid)
+  width: 50%
+  height: 1em
+  box-sizing: border-box
+  &.full
+    width: 100%
+
+.chart--placeholder, .placeholder
+  position: relative
+  opacity: 0.25
+  &:after
+    content: ""
+    display: block
+    position: absolute
+    top: 0
+    left: 0
+    background-color: var(--gray-semi)
+    width: 100%
+    height: 100%
+
+// TICKS
++b(ticks)
+  --chart-font-size: 8px
+  color: var(--gray-dark)
+  font-family: Pixelmix, sans-serif
+  font-size: var(--chart-font-size)
+  stroke-dasharray: 0
+  stroke-width: 0.7
+  +m(y)
+    transform: translatex(-1px)
+    line
+      transform: translatex(-9px)
+  +m(x)
+    line
+      transform: translatey(10px)
+      &:first-child,
+      &:last-of-type
+        display: none
+    text
+      &:first-child,
+      &:last-child
+        display: none
+  
+// NOTICE
++b(notice)
+  +e(wrapper)
+    position: fixed
+    bottom: 0
+    left: 0
+    width: 100%
+    z-index: 6
+    padding-top: 15px
+    padding-bottom: 13px
+    padding-left: calc(20px + 5%)
+    padding-right: calc(20px + 5%)
+    background: var(--dark-blue)
+    @supports (backdrop-filter: blur(3px))
+      backdrop-filter: blur(10px)
+      background: rgba(0,0,0,0.35)
+      
+  +e(text)
+    margin: 0
+    text-align: center
+    color: #fff
+    
+  +e(close)
+    position: absolute
+    top: 0
+    bottom: 0
+    margin: auto
+    right: 12px
+    width: 12px
+    height: 12px
+    color: rgba(255,255,255,0.75)
+    cursor: pointer
+  
+    svg
+      width: 100% 
+      height: 100% 
+    
+  +e(link)
+    text-decoration: underline
+    color: var(--yellow)
+        

@@ -1,0 +1,673 @@
+//region source
+//https://medium.com/@marcmintel/pushing-bem-to-the-next-level-with-sass-3-4-5239d2371321
+// @author Hugo Giraudel
+//endregion /////////////
+//region separator variables
+$elSep: "__"
+$modSep: "--"
+$spaceSep: " "
+$pseudoSep: ":"
+//endregion
+//region custom functions
+//region instructions
+//Replace `$search` with `$replace` in `$string`
+//@param {String} $string - Initial string
+//@param {String} $search - Substring to replace
+//@param {String} $replace ('') - New value
+//@return {String} - Updated string
+//endregion
+@function to-string($value)
+  @return inspect($value)
+
+@function str-replace($string, $search, $replace: '')
+  $index: str-index($string, $search)
+  @if $index
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace)
+
+  @return $string
+
+@function selectorToString($selector)
+  $selector: inspect($selector)
+  //cast to string
+  $selector: str-slice($selector, 2, -2)
+  //remove bracket
+  @return $selector
+
+@function containsModifier($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $modSep)
+    @return true
+  @else
+    @return false
+
+@function containsSpace($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $spaceSep)
+    @return true
+  @else
+    @return false
+
+@function containsElement($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $elSep)
+    @return true
+  @else
+    @return false
+
+@function containsPseudo($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $pseudoSep)
+    @return true
+  @else
+    @return false
+
+@function getBlock($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $modSep)
+    $modifierStart: str-index($selector, $modSep) - 1
+    @return str-slice($selector, 0, $modifierStart)
+  @else
+    @return $selector
+
+@function getBlockName($selector)
+  $selector: selectorToString($selector)
+  @if str-index($selector, $modSep)
+    $modifierStart: str-index($selector, $modSep) - 1
+    @return str-slice($selector, 0, $modifierStart)
+  @else if str-index($selector, $elSep)
+    $elementStart: str-index($selector, $elSep) - 1
+    @return str-slice($selector, 0, $elementStart)
+//endregion /////////////
+//region bem
+=b($block)
+  .#{$block}
+    @content
+
+=e($element, $extend: null)
+  $selector: &
+  $block: getBlock($selector)
+  @if containsModifier($selector)
+    $extendClass: if($extend, ', ' + ' .' + $extend + ', ', '')
+    @at-root #{$selector}
+      #{$block + $elSep + $element + $extendClass}
+        @content
+  @else
+    $extendClass: if($extend, ', ' + $selector + ' .' + $extend + ', ', '')
+    @at-root #{$selector + $elSep + $element + $extendClass}
+      @content
+
+=m($modifier)
+  @at-root
+    #{&}#{$modSep + $modifier}
+      @content
+//endregion /////////////
+//region c
+// ┌──────────────────────────────────────────────────┐
+// │ c = class                                        │
+// ├—————————————————————─────────────────────────────┤
+// │ can be nested inside                             │
+// │ modifier and element.                            │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(parent)                                       │
+// │   +c(class)                                      │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .parent .class                                   │
+// └———————————————————————───────────────────────────┘
+=c($element, $extend: null)
+  $selector: &
+  $block: getBlock($selector)
+  @if containsModifier($selector)
+    $extendClass: if($extend, ', ' + ' .' + $extend + ', ', '')
+    @at-root #{$selector}
+      #{'.' + $element + $extendClass}
+        @content
+  @else
+    $extendClass: if($extend, ', ' + $extend + ', ', '')
+    @at-root #{$selector + ' .' + $element + $extendClass}
+      @content
+//endregion /////////////
+//region t
+// ┌──────────────────────────────────────────────────┐
+// │ c = tag                                          │
+// ├—————————————————————─────────────────────────────┤
+// │ can be nested inside                             │
+// │ modifier and element.                            │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(parent)                                       │
+// │   +t(tag)                                        │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .parent tag                                      │
+// └———————————————————————───────────────────────────┘
+=t($element, $extend: null)
+  $selector: &
+  $block: getBlock($selector)
+  @if containsModifier($selector)
+    $extendClass: if($extend, ', ' + ' .' + $extend + ', ', '')
+    @at-root #{$selector}
+      #{$element + $extendClass}
+        @content
+  @else
+    $extendClass: if($extend, ', ' + $extend + ', ', '')
+    @at-root #{$selector + ' ' + $element + $extendClass}
+      @content
+//endregion /////////////
+//region nm
+// ┌──────────────────────────────────────────────────┐
+// │ nm = :not modifier list                          │
+// ├—————————————————————─────────────────────────────┤
+// │ when for e.g. several modifiers                  │
+// │ need to be excluded                              │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(parent)                                       │
+// │   +m(modifier)                                   │ 
+// │     +nl(not1,not2)                               │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .parent--modifier:not(parent--not1),             │
+// │ .parent--modifier:not(parent--not2)              │
+// └———————————————————————───────────────────────────┘
+=nm($list...)
+  $debug: false
+  $selector: str-replace(selectorToString(&), ',', '')
+  $modIndex: str-index($selector, $modSep)
+  $spaceIndex: str-index($selector, $spaceSep)
+  $pseudoIndex: str-index($selector, $pseudoSep)
+  $not: ':not'
+  $start: '('
+  $end: ')'
+  $var: ''
+  $length: length($list)
+  $parent: ''
+  @if containsModifier($selector)
+    $parent: str-slice($selector, 0, $modIndex - 1)
+    @if $debug
+      @debug 'modIndex:' $modIndex
+
+  @else if containsSpace($selector)
+    $parent: str-slice($selector, 0, $spaceIndex - 1)
+    @if $debug
+      @debug '$spaceIndex:' $spaceIndex
+
+  @else if containsPseudo($selector)
+    $parent: str-slice($selector, 0, $pseudoIndex - 1)
+    @if $debug
+      @debug '$pseudoIndex:' $pseudoIndex
+
+  @else if not containsSpace($selector) not containsModifier($selector) not containsPseudo($selector)
+    $parent: $selector
+
+  @each $i in $list
+    @if (index($list, $i) == 1)
+      $var: $var + $selector + $not + $start + $parent + $modSep + $i + $end
+    @else
+      $var: $var + $not + $start + $parent + $modSep + $i + $end
+
+  @if $debug
+    @debug '$selector:' $selector
+    @debug 'parent:' $parent
+    @debug 'length:' $length
+    @debug 'var:' $var
+
+  @at-root #{$var}
+    @content
+//endregion /////////////
+
+//region np
+// ┌──────────────────────────────────────────────────┐
+// │ np  = :not :pseudo                               │
+// ├—————————————————————─────────────────────────────┤
+// │ when for e.g. several modifiers                  │
+// │ need to be excluded                              │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(parent)                                       │
+// │   +m(modifier)                                   │ 
+// │     +np(pseudo1,pseudo2)                         │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .parent--modifier:not(:pseudo1),                 │
+// │ .parent--modifier:not(:pseudo2)                  │
+// └———————————————————————───────────────────────────┘
+//=np($list...)
+//  $debug: true
+//  $selector: str-replace(selectorToString(&), ',', '')
+//  $modIndex: str-index($selector, $modSep)
+//  $elIndex: str-index($selector, $elSep)
+//  $parent: ""
+//  @if $modIndex and not $elIndex
+//    $parent: str-slice($selector, 0, $modIndex - 1)
+//    @if $debug
+//      @debug 'modIndex:' $modIndex
+//      @debug '___1___:' $modIndex
+//  @if $elIndex and not $modIndex
+//    $parent: str-slice($selector, 0, $elIndex - 1)
+//    @if $debug
+//      @debug 'elIndex:' $elIndex
+//      @debug '___2___:' $modIndex
+//  @if $elIndex and $modIndex
+//    $parent: $selector
+//    @if $debug
+//      @debug 'elIndex:' $elIndex
+//      @debug 'modIndex:' $modIndex
+//      @debug '___3___:' $modIndex
+//  $semicolon: ':'
+//  $not: ':not'
+//  $start: '('
+//  $end: ')'
+//  $var: ''
+//  @each $i in $list
+//    @if (index($list, $i) == 1)
+//      $var: $var + $parent + $not + $start + $semicolon + $i + $end
+//    @if (index($list, $i) > 1)
+//      $var: $var + $not + $start + $semicolon + $i + $end
+//  @if $debug
+//    @debug $parent
+//    @debug $var
+//  @at-root #{$var}
+//    @content
+//endregion /////////////
+//region is
+// ┌──────────────────────────────────────────────────┐
+// │ is                                               │
+// ├—————————————————————─────────────────────────────┤
+// │ target also contains                             │
+// │ another class.                                   │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +m(modifier)                                   │
+// │     +is(class)                                   │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier.class                           │
+// └———————————————————————───────────────────────────┘
+=is($is, $extend: null)
+  $selector: str-replace(selectorToString(&), ',', '')
+  $extendClass: if($extend, ', ' + $extend + ', ', '')
+  @at-root #{$selector + '.' + $is + $extendClass}
+    @content
+//endregion /////////////
+//region ism
+// ┌──────────────────────────────────────────────────┐
+// │ ism  = is modifier                               │
+// ├—————————————————————─────────────────────────────┤
+// │ target modifier also contains                    │
+// │ another modifier                                 │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +m(modifier1)                                  │
+// │     +ism(modifier2)                              │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier1.block--modifier2               │
+// └———————————————————————───────────────────────────┘
+=ism($m)
+  $parentMod: str-replace(selectorToString(&), ',', '')
+  $modIndex: str-index($parentMod, $modSep)
+  $parent: str-slice($parentMod, 0, $modIndex - 1)
+  $var: $parentMod + $parent + $modSep + $m
+
+  $debug: false
+  @if $debug
+    @debug 'parent modifier:' $parentMod
+    @debug 'parent:' $parent
+    @debug 'result:' $var
+
+  @at-root #{$var}
+    @content
+//endregion /////////////
+//region ismp
+// ┌──────────────────────────────────────────────────┐
+// │ ismp  = does parent contains modifier            │
+// ├—————————————————————─────────────────────────────┤
+// │ target modifier also contains                    │
+// │ another modifier                                 │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +e(element)                                    │
+// │     +ismp(modifier1)                             │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier1 .block__element                │
+// └———————————————————————───────────────────────────┘
+=ismp($m)
+  $selector: str-replace(selectorToString(&), ',', '')
+  $elIndex: str-index($selector, $elSep)
+  $parent: str-slice($selector, 0, $elIndex - 1)
+  $var: $parent + $modSep + $m + $spaceSep + $selector
+  $debug: false
+  @if $debug
+    @debug ' $selector:' $selector
+    @debug '$elIndex:' $elIndex
+    @debug '$parent:' $var
+  @at-root #{$var}
+    @content
+//endregion /////////////
+//region ml
+// ┌──────────────────────────────────────────────────┐
+// │ ml = modifier list                               │
+// ├—————————————————————─────────────────────────────┤
+// │ when block contains                              │
+// │ list  of modifiers.                              │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +ml(modifier1, modifier2)                      │
+// └———————————————————————─—────────────────────────—┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier1.block--modifier2               │
+// └———————————————————————───────────────────────────┘
+=ml($list...)
+  $parent: str-replace(selectorToString(&), ',', '')
+  $var: ''
+  @each $i in $list
+    $var: $var + $parent + $modSep + $i
+  $debug: false
+  @if $debug
+    @debug 'var:' $var
+    @debug 'selector:' $parent
+    @debug 'parent:' $parent
+  @at-root #{$var}
+    @content
+//endregion /////////////
+//region mg
+// ┌──────────────────────────────────────────────────┐
+// │ mg = modifier group                              │
+// ├—————————————————————─────────────────────────────┤
+// │ when several modifiers                           │
+// │ have same properties                             │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +mg(modifier1,modifier2)                       │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier1, .block--modifier2             │
+// └———————————————————————───────────────────────────┘      
+=mg($list...)
+  $selector: &
+  $block: getBlock($selector)
+  @each $i in $list
+    @at-root
+      #{&}#{$modSep + $i}
+        @content
+//endregion /////////////
+//region on
+// ┌──────────────────────────────────────────────────┐
+// │ on                                               │
+// ├—————————————————————─────────────────────────────┤
+// │ target contains pseudo selector                  │
+// │ e.g. :hover, :after                              │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +e(element)                                    │
+// │     +on(pseudo)                                  │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block__element:pseudo                           │
+// └———————————————————————───────────────────────────┘
+=on($on)
+  $selector: str-replace(selectorToString(&), ',', '')
+  @at-root #{$selector + ':' + $on}
+    @content
+//endregion /////////////
+//region ong
+// ┌──────────────────────────────────────────────────┐
+// │ ong = on group                                   │
+// ├—————————————————————─────────────────────────────┤
+// │ target contains several                          │
+// │ pseudo selectors                                 │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +m(modifier)                                   │
+// │     +ong(pseudo1,pseudo2)                        │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier:pseudo1,                        │
+// │ .block--modifier:pseudo2                         │
+// └———————————————————————───────────────────────────┘      
+=ong($list...)
+  $selector: str-replace(selectorToString(&), ',', '')
+  @each $i in $list
+    @at-root #{$selector + ':' + $i}
+      @content
+//endregion /////////////
+//region ongp
+// ┌──────────────────────────────────────────────────┐
+// │ ongp = on group parent                           │
+// ├—————————————————————─────────────────────────────┤
+// │ parent has several pseudo elements               │
+// │ that affect target                               │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +e(element)                                    │
+// │     +m(modifier)                                 │
+// │       +ongp(pseudo1,pseudo2)                     │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block:pseudo1 block__element--modifier,         │
+// │ .block:pseudo2 block__element--modifier          │
+// └———————————————————————───────────────────────────┘ 
+//on state parent, e.g. .parent:hover target, parent:active target, 
+=ongp($list...)
+  $selector: selectorToString(&)
+  $modIndex: str-index($selector, $modSep)
+  $sepIndex: str-index($selector, ' ')
+  $selectorLength: str-length($selector)
+  $parent: str-slice($selector, 0, $modIndex - 1)
+  $parentMod: str-slice($selector, 0, $sepIndex - 1)
+  $child: str-slice($selector, $sepIndex, $selectorLength)
+  $var: ''
+
+  $debug: false
+  @if $debug
+    @debug 'selector:' $selector
+    @debug 'modificator index:' $modIndex
+    @debug 'selector length:' $selectorLength
+    @debug 'parent:' $parent
+    @debug 'parent modificator:' $parentMod
+    @debug 'child:' $child
+
+  @each $i in $list
+    @if (index($list, $i) == 1)
+      $var: #{$parentMod + ':' + $i + $child }
+    @else
+      $var: #{$var + $parentMod + ':' + $i + $child}
+  @at-root #{$var}
+    @content
+//endregion /////////////
+//region eg
+// ┌──────────────────────────────────────────────────┐
+// │ eg = element group                               │
+// ├—————————————————————─────────────────────────────┤
+// │ when several elements                            │
+// │ have same properties                             │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +eg(element1,element2)                         │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block__element1, .block__element2               │
+// └———————————————————————───────────────────────────┘
+=eg($list...)
+  $selector: &
+  $block: getBlock($selector)
+  @each $i in $list
+    @at-root
+      #{&}#{$elSep + $i}
+        @content
+//endregion /////////////
+//region next
+// ┌──────────────────────────────────────────────────┐
+// │ next                                             │
+// ├—————————————————————─────────────────────────────┤
+// │ target also has element                          │
+// │ coming straight after                            │       
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +m(modifier)                                   │
+// │     +next(next)                                  │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block--modifier + .next                         │
+// └———————————————————————───────────────────────────┘
+=next($next)
+  $selector: str-replace(selectorToString(&), ',', '')
+  @at-root #{$selector + '+.' + $next}
+    @content
+//endregion /////////////
+//region when
+// ┌──────────────────────────────────────────────────┐
+// │ when                                             │
+// ├—————————————————————─────────────────────────────┤
+// │ when you need to select                          │
+// │ specific parent block                            │
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +e(element)                                    │
+// │     +when(selector, true)                        │    
+// │                                                  │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .selector .block__element                        │
+// └———————————————————————───────────────────────────┘
+=when($when, $absolute: false)
+  $selector: selectorToString(&)
+  @if ($absolute)
+    @at-root #{'.' + $when + ' ' + $selector}
+      @content
+  @else
+    $blockName: getBlockName($selector)
+    $when: ' .' + $blockName + $elSep + $when + ' '
+    @if str-index($selector, ' ')
+      $insertStart: str-index($selector, ' ')
+      $selector: str-insert($selector, $when, $insertStart)
+    @else
+      $selector: str-insert($selector, $when, 0)
+    @at-root #{$selector}
+      @content
+//endregion /////////////
+//region different
+// ┌──────────────────────────────────────────────────┐
+// │ v = variables                                    │
+// └—————————————————————─—─—─────────────────────────┘
+=v
+  @content
+// ┌──────────────────────────────────────────────────┐
+// │ p = parent rules                                 │
+// └—————————————————————─—─—─────────────────────────┘
+=p
+  @content
+//endregion /////////////
+//region between
+// ┌──────────────────────────────────────────────────┐
+// │ between                                          │
+// ├—————————————————————─────────────────────────────┤
+// │ when you need to select                          │
+// │ specific parent element with modifier            │
+// └—————————————————————─—─—─────────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     INPUT                        │
+// ├———————————————————————───────────────────────────┤
+// │ +b(block)                                        │
+// │   +e(element1)                                   │
+// │     +between($e:element2,$m:modifier)            │    
+// │                                                  │
+// └———————————————————————─—─—───────────────────────┘
+// ┌──────────────────────────────────────────────────┐
+// │                     RESULT                       │
+// ├———————————————————————───────────────────────────┤
+// │ .block                                           │
+// │   .block__element2--modifier                     │
+// │     .block__element1                             │
+// └———————————————————————───────────────────────────┘
+=between($e:false,$m:false,$b:false)
+  $selector: &
+  $block: getBlock($selector)
+  $blockLength: str_length($block)
+  $elementSeparatorIndex: str-index($block, $elSep)
+  $parent: str_slice($block, 0, $elementSeparatorIndex - 1)
+  $this: str_slice($block, $elementSeparatorIndex + 2, $blockLength)
+  @if $e and $m and not $b
+    @at-root #{$parent + ' ' + $parent + $elSep + $e + $modSep + $m + ' ' + $parent + $elSep + $this }
+      @content
+  @else if $e and not $b
+    @at-root #{$parent + ' ' + $parent + $elSep + $e + ' ' + $parent + $elSep + $this }
+      @content
+  @else
+    @at-root #{$parent + ' ' + '.' + $b + ' ' + $this}
+      @content
+//endregion

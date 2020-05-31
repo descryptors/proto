@@ -1,0 +1,302 @@
+.night-mode-on
+  // BODY 
+  body
+    //
+    color: var(--night-white)
+
+
+  // HEADER 
+  .header
+    //
+    background: var(--night-dark-4)
+
+
+  // LOGO 
+  .logo__text
+    //
+    fill: var(--night-dark-2)
+
+
+  // BREAK 
+  .toolbar__item.break--diagonal
+    background: var(--night-chart-line)
+    
+  .breakbulb-fill
+    //
+    background: var(--night-dark-2)
+
+
+  // THEME ICON 
+  .icon--theme
+    circle
+      fill: var(--night-dark-2)
+      fill-opacity: 1
+
+    path
+      //
+      fill: var(--night-dark-4)
+
+
+  // MEDIA SEPARATORS 
+  .toolbar__filter-wrapper:before,
+  .toolbar__filter-wrapper:after
+    //
+    background: var(--night-dark-2)
+
+
+  // INFO ICON 
+  .icon--info circle
+    //
+    fill: var(--night-dark-2)
+
+  .icon--info path
+    //
+    fill: var(--night-light-2)
+
+
+  // FILTER 
+  .toolbar__filter
+    color: var(--night-light-2)
+    background-color: var(--night-dark-2)
+
+
+  // TOOLBAR MOBILE 
+  .toolbar--mobile
+    background: var(--night-dark-4) !important
+    .mobile-chart-icon
+      path
+        fill: var(--night-light-1)
+
+      line
+        stroke: var(--night-light-2)
+
+    .mobile-sort-icon
+      circle
+        fill: var(--night-light-1)
+
+      line
+        stroke: var(--night-light-2)
+
+    .mobile-theme-icon
+      path
+        fill: var(--night-light-2)
+
+      circle
+        fill: var(--night-light-1)
+
+    .mobile-info-icon
+      path:first-child
+        fill: var(--night-light-1)
+
+      path:not(:first-child)
+        fill: var(--night-light-2)
+
+    .mobile-search-icon
+      path:first-child
+        fill: var(--night-light-1)
+
+      path:not(:first-child), line
+        stroke: var(--night-light-2)
+
+  .toolbar--mobile-grid
+    +shadow-mid-dark
+    border: 2px solid var(--night-dark-3)
+    background: var(--night-dark-4) !important
+
+
+  // TOOLBAR LABEL 
+  .toolbar__label
+    //
+    color: var(--night-light-2)
+
+
+  // DROPWDOWN 
+  .dropdown
+    background-color: var(--night-dark-2)
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="48" viewBox="0 0 48 48"><path fill="rgb(112, 124, 150)" d="M14 20l10 10 10-10z"/><path fill="none" d="M0 0h48v48h-48z" /></svg>')
+    color: var(--night-light-2)
+    border-bottom: 0
+
+    &__option-wrapper
+      width: 100%
+      border-top: 0
+      background: var(--night-dark-2)
+
+      option
+        background: var(--night-dark-2)
+
+        &:hover
+          background-color: var(--night-dark-1)
+          color: var(--night-light-2) !important
+
+
+  // GRID CARD 
+  .descryptor .upper-part h1 a,
+  .tags-wrapper
+    font-weight: normal
+    color: var(--night-white)
+
+
+  // SINGLE GITHUB DETAILS 
+  .github-details .item-right
+    //
+    color: var(--night-light-2)
+
+
+  // SINGLE LINKS 
+  .single__link
+    //
+    color: var(--night-blue-light-2)
+
+
+  // SINGLE FOUNDER ICON 
+  .founder-icon
+    path
+      //
+      fill: var(--night-blue-light-2)
+
+
+  // SINGLE CARD 
+  .single,
+  .descryptor
+    background-color: var(--night-dark-2)
+    box-shadow: 0.16px 0.16px 12px var(--night-shadow)
+  .descryptor:focus
+    //
+    box-shadow: 0.16px 0.16px 0.16px var(--night-shadow)
+
+
+  // CHARTS 
+  .descryptor
+    .chart-wrapper
+      .chart svg polyline
+        stroke: var(--night-blue-light-1)
+
+      line
+        display: none
+
+  .single
+    .chart--price
+      line
+        stroke: var(--night-chart-line)
+
+      svg polyline
+        stroke: var(--night-blue-light-1)
+
+  .chart--github
+    //
+    svg
+      +charts-filter
+    
+  // PLACEHOLDER 
+  .chart--placeholder,
+  .placeholder
+    opacity: 1
+    &:after
+      background-color: var(--night-dark-3)
+
+
+  // TAGS 
+  .tag
+    //
+    color: var(--night-blue-light-2)
+    opacity: 1
+
+
+  // LABEL 
+  .single__label,
+  label
+    //
+    color: var(--night-light-2)
+
+
+  // WEBSITE 
+  .website .homepage-icon .homepage-icon-path
+    //
+    fill: var(--night-blue-light-2)
+
+
+  // SIMILIAR COINS / FOOTER TAGS / MORE 
+  .footer > *
+    //
+    opacity: 0.45
+
+  .footer .footer__support-tag
+    color: #fff
+    background: var(--night-light-1)
+
+  .footer .footer__support-tag
+    &:hover
+      background: var(--night-light-2)
+
+  .similar-coins .coin,
+  .more--bg,
+  .more--number
+    color: var(--night-blue-light-2)
+    background: var(--night-light-1)
+
+
+  // PERIOD WRAPPER 
+  .period-wrapper
+    a
+      color: var(--night-blue-light-1)
+
+      &.active
+        &:after
+          background: var(--night-light-1)
+
+
+  // TABLE GRADIENT 
+  .table
+    &:after
+      background: linear-gradient(to right, transparent, var(--night-dark-2) 99%)
+      
+  
+  // LINE PROGRESS 
+  .line
+    background: var(--night-dark-1)
+
+    &__progress
+      //
+      background: var(--night-light-2)
+
+
+  // FOOTER 
+  .footer
+    background: var(--night-dark-2)
+
+    .logo__text
+      fill: #fff
+
+
+  // NAVIGATION PREV/NEXT 
+  .navigation__item.disabled
+    path
+      fill: var(--night-dark-1)
+
+
+  // EDIT 
+  .edit
+    path
+      fill: var(--night-blue-light-2)
+
+
+  // OTHER 
+  body,
+  #app,
+  .wrapper
+    //
+    background: var(--night-dark-4)
+
+  .chart svg polyline
+    //
+    stroke: #fff
+
+  .homepage-icon
+    //
+    filter: hue-rotate(-7.7deg) brightness(1.4)
+
+  .highlight:not(.highlight--eco)
+    background: var(--blue)
+    color: #fff
+

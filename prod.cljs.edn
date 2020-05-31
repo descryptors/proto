@@ -1,0 +1,8 @@
+{:main proto.figwheel
+ :output-to "resources/public/js/main.js"
+ :output-dir "resources/public/js/out"
+ :asset-path "js/out"
+ :externs ["externs.js"]
+ :optimizations :advanced
+ :pretty-print  false
+ :parallel-build true}

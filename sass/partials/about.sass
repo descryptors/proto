@@ -1,0 +1,76 @@
++b(about)
+  +p
+    max-width: 900px
+    background: var(--blue-overlay-plain)
+    display: flex
+    flex-direction: column
+    justify-content: center
+    min-height: calc(100vh - #{$about-padding-top} - #{$about-padding-bottom})
+    padding-top: $about-padding-top
+    padding-bottom: $about-padding-bottom
+    min-width: $width-global-mini
+    overflow-x: visible
+    +max(991)
+      padding-right: 10vw
+      padding-left: 10vw
+  +e(wrapper)
+    background: var(--blue-overlay-plain)
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    min-height: 100vh
+    display: flex
+    justify-content: center
+    align-items: center
+    +max(350)
+      justify-content: flex-start
+
+  +e(logo)
+    margin-bottom: 60px
+    &:hover
+      path
+        fill: var(--white) !important
+    path
+      fill: var(--gray-about) !important
+    #logo__container
+      position: static
+      width: 250px
+      +max(350)
+        width: 100% !important
+    .logo__text
+      display: block !important
+
+  +e(close)
+    cursor: pointer
+    position: absolute
+    width: 30px
+    height: 30px
+    right: 32px
+    top: 32px
+    opacity: 0.5
+    z-index: 100
+    +max(350)
+      right: 6.5vw
+    &:hover
+      opacity: 1
+
+  +e(text)
+    color: var(--gray-about)
+    font-size: 25px
+    line-height: 1.2
+    +max(991)
+      font-size: 20px
+    +max(333)
+      font-size: 15px
+      
+  +e(title)
+    font-size: 200%
+    
+  +e(subtitle)
+    font-size: 150%
+    margin-top: 30px
+  +b(highlight)
+    margin-right: 3px
+    +e(link)
+      color: var(--white-transparent-70)
