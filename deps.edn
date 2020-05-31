@@ -20,20 +20,6 @@
 
  
  :aliases
- {:prod
-  {:extra-paths ["resources"]
-   :main-opts ["-m cljs.main -co prod.cljs.edn -c proto.figwheel"]}
-
-
-  :cider
-  {:extra-paths ["resources"]
-   :extra-deps {cider/piggieback {:mvn/version "0.4.0"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.7"}}}
-  
-  
-  :figwheel
-  {:extra-paths ["resources"]
-   :extra-deps {cider/piggieback {:mvn/version "0.4.0"}
-                devcards/devcards {:mvn/version "0.2.7"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.7"}}
-   :main-opts ["-i scripts/sass.clj -m figwheel.main -b dev"]}}}
+ {:sass
+  {:extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.7"}}
+   :main-opts ["-i scripts/sass.clj -r"]}}}
