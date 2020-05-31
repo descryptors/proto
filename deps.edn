@@ -16,24 +16,4 @@
         { ;;:mvn/version "1.0.0-RC4"
          ;; version without ndarray
          :git/url "https://github.com/dimovich/geom"
-         :sha "0de32866ff85533e0a57bf4567917f1a5c70aabc"}}
-
- 
- :aliases
- {:prod
-  {:extra-paths ["resources"]
-   :main-opts ["-m cljs.main -co prod.cljs.edn -c proto.figwheel"]}
-
-
-  :cider
-  {:extra-paths ["resources"]
-   :extra-deps {cider/piggieback {:mvn/version "0.4.0"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.7"}}}
-  
-  
-  :figwheel
-  {:extra-paths ["resources"]
-   :extra-deps {cider/piggieback {:mvn/version "0.4.0"}
-                devcards/devcards {:mvn/version "0.2.7"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.7"}}
-   :main-opts ["-i scripts/sass.clj -m figwheel.main -b dev"]}}}
+         :sha "0de32866ff85533e0a57bf4567917f1a5c70aabc"}}}
