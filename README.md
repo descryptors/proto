@@ -14,9 +14,11 @@
 __Proto__ is a collection of UI protoplasm handy for prototyping components for [Hiccup](https://github.com/weavejester/hiccup) and [Reagent](https://github.com/reagent-project/reagent).
 
 
-## Running
+## Building
 
-To start __Proto__ you will need to install [__Clojure CLI tools__](https://clojure.org/guides/getting_started).
+To build __Proto__ you will need to install [__Clojure CLI tools__](https://clojure.org/guides/getting_started).
+
+## Start
 
 ```
 clj -A:figwheel
