@@ -570,12 +570,11 @@
           [:label.single__label "Transaction Fee"]
           [:div [:span "0.001"][:span "$"]]]
 
-       [:div.single__column-item
-        [:label.single__label "Market Cap"]
-        [:div [:span "$"]
-         [:span (spacefy (long
-                          (:market-cap
-                           (:market-data metrics-data))))]]]
+       (when-let [marketcap (get-in metrics-data [:market-data :market-cap])]
+         [:div.single__column-item
+          [:label.single__label "Market Cap"]
+          [:div [:span "$"]
+           [:span (spacefy (long marketcap))]]])
 
        #_[:div.single__column-item
           #?@(:clj [[:label.single__label.single__label--dropdown "Volume 24h"]]
@@ -638,59 +637,60 @@
 
       ;; Info
 
-      [:div.single__column.single__column--sm
-       [:div.single__column-item.details
+      (when (:market-data metrics-data)
+        [:div.single__column.single__column--sm
+         [:div.single__column-item.details
 
-        [:div.details__column
-         [:span {:class "single__label"}
-          "Price Change"]
+          [:div.details__column
+           [:span {:class "single__label"}
+            "Price Change"]
 
-         ;; don't show last updated for now
-         #_(when-let [last-updated (some->> (get-in metrics-data [:market-data :last-updated])
-                                            (ctc/from-long)
-                                            (ctf/unparse #?(:cljs {:format-str "hh:mma"}
-                                                            :clj (ctf/formatter "hh:mma"))))]
+           ;; don't show last updated for now
+           #_(when-let [last-updated (some->> (get-in metrics-data [:market-data :last-updated])
+                                              (ctc/from-long)
+                                              (ctf/unparse #?(:cljs {:format-str "hh:mma"}
+                                                              :clj (ctf/formatter "hh:mma"))))]
 
-             [:span {:class "details__updated"}
-              "5 minutes ago"]
+               [:span {:class "details__updated"}
+                "5 minutes ago"]
              
-             #_(cc [left-right {:class "details__row details__row--small"}
-                    [:span "Last updated"]
-                    (str last-updated " GMT")]))
+               #_(cc [left-right {:class "details__row details__row--small"}
+                      [:span "Last updated"]
+                      (str last-updated " GMT")]))
          
-         (let [changes [[:price-change-percentage-1h-in-usd "1h"]
-                        [:price-change-percentage-24h-in-usd "24h"]
-                        [:price-change-percentage-7d-in-usd "7d"]]]
+           (let [changes [[:price-change-percentage-1h-in-usd "1h"]
+                          [:price-change-percentage-24h-in-usd "24h"]
+                          [:price-change-percentage-7d-in-usd "7d"]]]
            
-           (for [[data-key text] changes]
-             (when-let [change (get-in metrics-data [:market-data data-key])]
-               (cc [left-right {:class "details__row details__row--small"
-                                :key data-key}
-                    text [:span {:class (if (pos? change) "price-up" "price-down")}
-                          (str (spacefy change) "%")]]))))]
+             (for [[data-key text] changes]
+               (when-let [change (get-in metrics-data [:market-data data-key])]
+                 (cc [left-right {:class "details__row details__row--small"
+                                  :key data-key}
+                      text [:span {:class (if (pos? change) "price-up" "price-down")}
+                            (str (spacefy change) "%")]]))))]
 
 
-        ;; Blockchain Stats
+          ;; Blockchain Stats
         
-        (let [stats [[:count-of-tx "Transactions"]
-                     [:count-of-blocks-added "Blocks added"]
-                     [:count-of-active-addresses "Active addresses"]
-                     [:median-tx-value "Avg. transaction (USD)"]
-                     [:median-tx-fee "Avg. fee (USD)"]]]
+          (let [stats [[:count-of-tx "Transactions"]
+                       [:count-of-blocks-added "Blocks added"]
+                       [:count-of-active-addresses "Active addresses"]
+                       [:median-tx-value "Avg. transaction (USD)"]
+                       [:median-tx-fee "Avg. fee (USD)"]]]
           
-          (when (->> (vals (:blockchain-stats-24-hours metrics-data))
-                     (filter (partial < 0))
-                     (not-empty))
-            [:div.details__column
-             [:span {:class "single__label"}
-              "Blockchain Stats"]
+            (when (->> (vals (:blockchain-stats-24-hours metrics-data))
+                       (filter (partial < 0))
+                       (not-empty))
+              [:div.details__column
+               [:span {:class "single__label"}
+                "Blockchain Stats"]
 
-             (for [[data-key text] stats]
-               (when-let [stat (get-in metrics-data [:blockchain-stats-24-hours data-key])]
-                 (when (< 0.001 stat)
-                   (cc [left-right {:class "details__row details__row--small"
-                                    :key data-key}
-                        text [:span (spacefy stat)]]))))]))]]]
+               (for [[data-key text] stats]
+                 (when-let [stat (get-in metrics-data [:blockchain-stats-24-hours data-key])]
+                   (when (< 0.001 stat)
+                     (cc [left-right {:class "details__row details__row--small"
+                                      :key data-key}
+                          text [:span (spacefy stat)]]))))]))]])]
 
 
 
