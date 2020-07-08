@@ -88,7 +88,7 @@
 
 (def min-max  (juxt (partial reduce min) (partial reduce max)))
 (def get-size (comp (partial apply -) reverse))
-(def remove-nils (partial filter (partial not-any? nil?)))
+(def remove-nils (filter (partial not-any? nil?)))
 
 
 
@@ -100,63 +100,62 @@
 
 
 
+(defn filter-period-xf [[start end]]
+  (filter
+   (fn [[timestamp _]]
+     (m/in-range? start end timestamp))))
+
+
 
 (defn add-spec
   "Calculate common values and add it to :spec. Enforce period
   with :view. Use `data-fn` to extract a coll of [x y] values."
   [{:keys [data spec] :as chart-data}
-   & [{:as opts :keys [data-fn view size]
-       :or {data-fn (partial map (juxt first second))}}]]
+   & [{:as opts :keys [data-xf view size]
+       :or {data-xf (map (juxt first second))}}]]
 
   ;; move cleanup to higher fn?
-  (or
-   (when-let [data (-> data data-fn remove-nils not-empty)]
-     (let [[xstart xend]  (->> data (map first) min-max)
-           xperiod  (some->> view (get xgrid-spec) :period)
-           xdomain  (if xperiod
-                      [(- xend xperiod) xend]
-                      [xstart xend])
+  (if-let [data (->> data
+                     (sequence (comp data-xf remove-nils))
+                     not-empty)]
+    (let [[xstart xend]  (->> data (map first) min-max)
+          xperiod  (some->> view (get xgrid-spec) :period)
+          xdomain  (if xperiod
+                     [(- xend xperiod) xend]
+                     [xstart xend])
 
-           data (if xperiod
-                  (filter-period xdomain data)
-                  data)
+          data (if xperiod
+                 (filter-period xdomain data)
+                 data)
 
-           [ystart yend] (->> data (map second) min-max)
+          [ystart yend] (->> data (map second) min-max)
            
-           ydomain (if (= ystart yend)
-                     [0 (inc yend)] ;;fixme: better way?
+          ydomain (if (= ystart yend)
+                    [0 (inc yend)] ;;fixme: better way?
 
-                     (if (< (ts-variance data) 0.005)
-                       ;; low variance
-                       (let [oney (* 2 (- yend ystart))]
-                         [(max 0 (- ystart oney))  (+ yend oney)])
+                    (if (< (ts-variance data) 0.005)
+                      ;; low variance
+                      (let [oney (* 2 (- yend ystart))]
+                        [(max 0 (- ystart oney))  (+ yend oney)])
 
-                       ;; normal
-                       [ystart yend])
-                     
-                     #_(if (and (< 0.8 yend 1.2)
-                                (< 0.8 ystart 1.2))
-                         ;; Tether
-                         (let [oney (* 2 (- yend ystart))]
-                           [(max 0 (- ystart oney))  (+ yend oney)])
-                       
-                         [ystart yend]))
+                      ;; normal
+                      [ystart yend]))
            
-           xsize (get-size xdomain)
-           ysize (get-size ydomain)]
+          xsize (get-size xdomain)
+          ysize (get-size ydomain)]
 
        
        
-       (->> {:xdomain xdomain
-             :ydomain ydomain
-             :xsize xsize
-             :ysize ysize}
+      (->> {:xdomain xdomain
+            :ydomain ydomain
+            :xsize xsize
+            :ysize ysize}
             
-            (merge (dissoc opts :data-fn))
+           (merge (dissoc opts :data-fn))
      
-            (update chart-data :spec merge))))
-   
-   chart-data))
+           (update chart-data :spec merge)))
+    
+    chart-data))
 
 
 
@@ -277,7 +276,6 @@
 
 
 
-
 #?(:clj
    (defn trim-precision
      "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
@@ -285,12 +283,30 @@
      [data-key precision view coin]
      (let [old-data (-> (get-in coin [:data data-key precision])
                         (add-spec {:view view}))]
-
        (when (not-empty (:spec old-data))
          (some->> (filter-period (:xdomain (:spec old-data))
                                  (:data old-data))
                   distinct
                   not-empty  vec
+                  (assoc-in {:slug (:slug coin)}
+                            [:data data-key precision :data]))))))
+
+
+
+
+#?(:clj
+   (defn trim-precision2
+     "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
+  `(trim-precision :price :hour :1m coin)`"
+     [data-key precision view coin]
+     (let [old-data (-> (get-in coin [:data data-key precision])
+                        (add-spec {:view view}))]
+       (when (not-empty (:spec old-data))
+         (some->> (:data old-data)
+                  (transduce (comp (filter-period-xf (:xdomain (:spec old-data)))
+                                   (distinct))
+                             conj)
+                  not-empty
                   (assoc-in {:slug (:slug coin)}
                             [:data data-key precision :data]))))))
 
