@@ -312,6 +312,16 @@
 
 
 
+#?(:clj
+   (defn trim-precision3
+     [period chart-data]
+     (if-let [xdomain (->> (add-spec chart-data {:view period})
+                           :spec :xdomain)]
+       (update chart-data :data (partial filter-period xdomain))
+       chart-data)))
+
+
+
 
 
 (defn enough-data?
