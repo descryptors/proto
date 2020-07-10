@@ -276,6 +276,28 @@
 
 
 
+
+#?(:clj
+   (defn minute->precision2
+     "Returns new timeseries taken from :minute and adjusted to precision.
+  `(minute->precision2 (get-in coin [:data :price]) :hour)`"
+     [precision data]
+     (let [old-spec (:spec (add-spec (get data precision)))
+           new-spec (:spec (add-spec (get data :minute)))
+           start (max (or (second (:xdomain old-spec)) 0)
+                      (or (first (:xdomain new-spec)) 0))
+           end (or (second (:xdomain new-spec)) 0)]
+
+       (cond-> data
+         (< start end)
+         (update-in [precision :data] (fnil into [])
+                    (some->> (filter-period [start end] (get-in data [:minute :data]))
+                             distinct
+                             (resample-period (get pcd/precisions precision) start)))))))
+
+
+
+
 #?(:clj
    (defn trim-precision
      "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
