@@ -298,6 +298,65 @@
 
 
 
+
+
+
+#?(:clj
+   (defn resample-rf [precision [start end]]
+     (fn
+       ([] (transient {}))
+    
+       ([coll]
+        (->> (persistent! coll)
+             (sort-by key)
+             (map (juxt key #(-> (val %) first double)))
+             ((fn [ts]
+                (if (== (first (last ts)) end)
+                  ts
+                  (butlast ts))))))
+    
+       ([coll [t v]]
+        (let [k (+ precision (- t (mod (- t start) precision)))
+              mean (get coll k)]
+          (assoc! coll k (if mean (cmean mean v) [v 1])))))))
+
+
+
+
+
+#?(:clj
+   (defn minute->precision3
+     "Returns new timeseries taken from :minute and adjusted to precision.
+  `(minute->precision2 (get-in coin [:data :price]) :hour)`"
+     [precision data]
+     (let [old-spec (min-max (keep first (get-in data [precision :data])))
+           ;;(:spec (add-spec (get data precision)))
+           new-spec (min-max (keep first (get-in data [:minute :data])))
+           ;;(:spec (add-spec (get data :minute)))
+           start (max (or (second old-spec) 0)
+                      (or (first new-spec) 0))
+           end (or (second new-spec) 0)]
+
+       (when (< start end)
+         (transduce
+          (comp (filter-period-xf [start end])
+                (distinct))
+          (resample-rf (get pcd/precisions precision) [start end])
+          (get-in data [:minute :data])))
+
+       
+       #_(cond-> data
+           (< start end)
+           (update-in [precision :data] (fnil into [])
+                      (transduce
+                       (comp (filter-period-xf [start end])
+                             (distinct))
+                       (resample-rf (get pcd/precisions precision) [start end])
+                       (get-in data [:minute :data])))))))
+
+
+
+
 #?(:clj
    (defn trim-precision
      "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
