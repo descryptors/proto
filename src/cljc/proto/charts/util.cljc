@@ -200,7 +200,7 @@
 
 
 #?(:clj
-   (defn cmean [[m k] v]
+   (defn cmean [[^Double m ^Long k] ^Double v]
      [(+ m (/ (- v m) (inc k)))
       (inc k)]))
 
@@ -300,59 +300,62 @@
 
 
 
-
 #?(:clj
-   (defn resample-rf [precision [start end]]
+   (defn resample-rf
+     "Reducing fn for transducers, resampling data with step precision."
+     [^Long step [^Long start ^Long end]]
      (fn
        ([] (transient {}))
     
        ([coll]
         (->> (persistent! coll)
-             (sort-by key)
-             (map (juxt key #(-> (val %) first double)))
-             ((fn [ts]
-                (if (== (first (last ts)) end)
-                  ts
-                  (butlast ts))))))
+             ;; [[t1 mean1] ...]
+             (map (juxt first (comp first second)))
+             ;; remove incomplete samples
+             (filter #(<= (first %) end))))
     
-       ([coll [t v]]
-        (let [k (+ precision (- t (mod (- t start) precision)))
+       ([coll [^Long t ^Double v]]
+        (let [ ;; t in range [start (+ start step)) -> (+ start step)
+              k (+ step (- (dec t) (mod (- (dec t) start) step)))
               mean (get coll k)]
-          (assoc! coll k (if mean (cmean mean v) [v 1])))))))
-
-
+          (assoc! coll k (if mean (cmean mean v) [v 1.0])))))))
 
 
 
 #?(:clj
    (defn minute->precision3
      "Returns new timeseries taken from :minute and adjusted to precision.
-  `(minute->precision2 (get-in coin [:data :price]) :hour)`"
+  `(minute->precision3 :hour (get-in coin [:data :price]))`"
      [precision data]
      (let [old-spec (min-max (keep first (get-in data [precision :data])))
-           ;;(:spec (add-spec (get data precision)))
            new-spec (min-max (keep first (get-in data [:minute :data])))
-           ;;(:spec (add-spec (get data :minute)))
-           start (max (or (second old-spec) 0)
-                      (or (first new-spec) 0))
+           
+           [start filter-start]
+           (if-let [old-start (second old-spec)]
+             [old-start (inc old-start)]
+             (repeat 2 (or (first new-spec) 0)))
+           
            end (or (second new-spec) 0)]
 
-       (when (< start end)
-         (transduce
-          (comp (filter-period-xf [start end])
-                (distinct))
-          (resample-rf (get pcd/precisions precision) [start end])
-          (get-in data [:minute :data])))
+       #_(when (< start end)
+           (transduce
+            (comp (filter-period-xf [filter-start end])
+                  (distinct))
+            (resample-rf (get pcd/precisions precision) [start end])
+            (get-in data [:minute :data])))
 
        
-       #_(cond-> data
-           (< start end)
-           (update-in [precision :data] (fnil into [])
-                      (transduce
-                       (comp (filter-period-xf [start end])
-                             (distinct))
-                       (resample-rf (get pcd/precisions precision) [start end])
-                       (get-in data [:minute :data])))))))
+       (cond-> data
+         (< start end)
+         (update-in [precision :data] (fnil into [])
+                    (transduce
+                     (comp (filter-period-xf [filter-start end])
+                           (distinct))
+                     (resample-rf (get pcd/precisions precision) [start end])
+                     (get-in data [:minute :data])))))))
+
+
+
 
 
 
