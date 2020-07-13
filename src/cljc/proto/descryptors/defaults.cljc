@@ -10,8 +10,12 @@
 (def chart-period      :6m)
 (def chart-size        [600 200])
 (def price-chart-size  [600 200])
-(def svg-path          [:svg :6m])
 (def github-chart-size [26 7])
+
+(def svg-path          [:svg :6m])
+
+(def price-period-single :1d)
+(def git-period-single   :1y)
 
 (def github-precision
   (->> chart-period
@@ -31,12 +35,12 @@
            :mobile [24 7]}})
 
 
-(def static-charts
+(def static-price-charts
   [{:view chart-period
     :size price-chart-size
     :line-width "2px"}
 
-   {:view :1y
+   {:view price-period-single
     :line-width "1px"
     :xticks? true :yticks? true
     :grid-width "1px"

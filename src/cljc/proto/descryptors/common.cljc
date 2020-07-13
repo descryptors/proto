@@ -626,7 +626,7 @@
                   :xticks? true
                   :yticks? true
                   :dynamic? #?(:clj false :cljs true)
-                  :view :1y
+                  :view defaults/price-period-single
                   :spec {:line-width "1.2px"
                          :grid-width #?(:clj "1px"
                                         :cljs (if js/isChrome "0.9px" "1px"))
@@ -646,10 +646,11 @@
             "Price Change"]
 
            ;; don't show last updated for now
-           #_(when-let [last-updated (some->> (get-in metrics-data [:market-data :last-updated])
-                                              (ctc/from-long)
-                                              (ctf/unparse #?(:cljs {:format-str "hh:mma"}
-                                                              :clj (ctf/formatter "hh:mma"))))]
+           #_(when-let [last-updated
+                        (some->> (get-in metrics-data [:market-data :last-updated])
+                                 (ctc/from-long)
+                                 (ctf/unparse #?(:cljs {:format-str "hh:mma"}
+                                                 :clj (ctf/formatter "hh:mma"))))]
 
                [:span {:class "details__updated"}
                 "5 minutes ago"]
@@ -711,7 +712,7 @@
             (cc [github-chart github-data
                  {:period-selectors? true
                   :dynamic? #?(:clj false :cljs true)
-                  :view :1y
+                  :view defaults/git-period-single
                   :spec {:size (get-in defaults/dynamic-chart-sizes
                                        (if mobile?
                                          [:git :mobile]
@@ -788,29 +789,31 @@
           (if svg-data
             (cc [price-chart price-data])
             (cc [chart-placeholder {:size defaults/price-chart-size}]))))
-    
 
-      ;; Github Info
+
       (when (:github-chart visible-charts)
-        [:div.details.details--github
-         (let [total (:total github-data)]
-           (if (and total (not (zero? total)))
-             (cc [left-right {:class "details__row details__row--middle"}
-                  [:span "Code activity"
-                   (cc [rating (or (some-> github-index inc) "")
-                        [:div.overlay__text.overlay__text--card.overlay__text--dev-rank]])]
-                  total])
+        [:<>
+         ;; Github Info
+         ;;
+         [:div.details.details--github
+          (let [total (:total github-data)]
+            (if (and total (not (zero? total)))
+              (cc [left-right {:class "details__row details__row--middle"}
+                   [:span "Code activity"
+                    (cc [rating (or (some-> github-index inc) "")
+                         [:div.overlay__text.overlay__text--card.overlay__text--dev-rank]])]
+                   total])
            
-             [:div.details__row.details__row--middle.placeholder.full]))])
-    
-      ;; Github Chart
-      (when (:github-chart visible-charts)
-        (let [{{{svg-spec :spec svg-data :data} defaults/chart-period} :svg} github-data]
-          (if svg-data
-            (cc [github-chart github-data
-                 {:spec {:size defaults/github-chart-size}}])
-            (cc [chart-placeholder
-                 {:size defaults/github-chart-size}]))))]]))
+              [:div.details__row.details__row--middle.placeholder.full]))]
+
+         ;; Github Chart
+         ;;
+         (let [{{{svg-spec :spec svg-data :data} defaults/chart-period} :svg} github-data]
+           (if svg-data
+             (cc [github-chart github-data
+                  {:spec {:size defaults/github-chart-size}}])
+             (cc [chart-placeholder
+                  {:size defaults/github-chart-size}])))])]]))
 
 
 
