@@ -25,6 +25,7 @@
 
 (def mobile-breakpoint 750)
 
+
 ;; responsive dynamic chart sizes
 ;;
 (def dynamic-chart-sizes
@@ -33,6 +34,7 @@
                   
    :git   {:desktop [60 6]
            :mobile [24 7]}})
+
 
 
 (def static-price-charts
@@ -44,7 +46,16 @@
     :line-width "1px"
     :xticks? true :yticks? true
     :grid-width "1px"
-    :size (get-in dynamic-chart-sizes [:price :desktop])}])
+    :size (:desktop (:price dynamic-chart-sizes))}])
+
+
+
+(def static-git-charts
+  [{:view :6m
+    :size github-chart-size}
+   {:view :1y
+    :size (:desktop (:git dynamic-chart-sizes))}])
+
 
 
 (def themes #{:night-theme :day-theme})
