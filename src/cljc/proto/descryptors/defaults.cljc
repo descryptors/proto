@@ -14,7 +14,7 @@
 
 (def svg-path          [:svg :6m])
 
-(def price-period-single :1d)
+(def price-period-single :1m)
 (def git-period-single   :1y)
 
 (def github-precision
