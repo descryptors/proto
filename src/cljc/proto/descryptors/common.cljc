@@ -791,29 +791,30 @@
             (cc [chart-placeholder {:size defaults/price-chart-size}]))))
 
 
+      ;; Github Info
+      ;;
       (when (:github-chart visible-charts)
-        [:<>
-         ;; Github Info
-         ;;
-         [:div.details.details--github
-          (let [total (:total github-data)]
-            (if (and total (not (zero? total)))
-              (cc [left-right {:class "details__row details__row--middle"}
-                   [:span "Code activity"
-                    (cc [rating (or (some-> github-index inc) "")
-                         [:div.overlay__text.overlay__text--card.overlay__text--dev-rank]])]
-                   total])
+        [:div.details.details--github
+         (let [total (:total github-data)]
+           (if (and total (not (zero? total)))
+             (cc [left-right {:class "details__row details__row--middle"}
+                  [:span "Code activity"
+                   (cc [rating (or (some-> github-index inc) "")
+                        [:div.overlay__text.overlay__text--card.overlay__text--dev-rank]])]
+                  total])
            
-              [:div.details__row.details__row--middle.placeholder.full]))]
+             [:div.details__row.details__row--middle.placeholder.full]))])
 
-         ;; Github Chart
-         ;;
-         (let [{{{svg-spec :spec svg-data :data} defaults/chart-period} :svg} github-data]
-           (if svg-data
-             (cc [github-chart github-data
-                  {:spec {:size defaults/github-chart-size}}])
-             (cc [chart-placeholder
-                  {:size defaults/github-chart-size}])))])]]))
+      
+      ;; Github Chart
+      ;;
+      (when (:github-chart visible-charts)
+        (let [{{{svg-spec :spec svg-data :data} defaults/chart-period} :svg} github-data]
+          (if svg-data
+            (cc [github-chart github-data
+                 {:spec {:size defaults/github-chart-size}}])
+            (cc [chart-placeholder
+                 {:size defaults/github-chart-size}]))))]]))
 
 
 
