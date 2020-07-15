@@ -90,6 +90,8 @@
 (def get-size (comp (partial apply -) reverse))
 (def remove-nils (filter (partial not-any? nil?)))
 
+(defn ts-minmax [ts] (some->> ts (keep first) not-empty min-max))
+
 
 
 (defn filter-period [[start end] data]
@@ -109,7 +111,7 @@
 
 (defn add-spec
   "Calculate common values and add it to :spec. Enforce period
-  with :view. Use `data-fn` to extract a coll of [x y] values."
+  with :view. Use transducer `data-xf` to extract [x y] from data."
   [{:keys [data spec] :as chart-data}
    & [{:as opts :keys [data-xf view size]
        :or {data-xf (map (juxt first second))}}]]
@@ -160,151 +162,10 @@
 
 
 
-
-
-(def suffixes ["" "K" "M" "B"])
-
-(defn compactnum [num]
-  (if (zero? num)
-    num
-    (let [[num suffix]
-          (if (< num 50000)
-            [num ""]
-            (loop [num num
-                   [suffix & rst] suffixes]
-              (if (or (< num 1000)
-                      (empty? rst))
-                [(double num) suffix]
-                (recur (/ num 1000) rst))))
-
-          num (m/roundto num 0.001)
-          
-          [left right] ((juxt long #(- % (long %))) num)]
-      
-      (->
-       (if (zero? left)
-         (if (< right 1e-4)
-           (cl-format nil "~,3,1,,'*E" right)
-           (format "%.3f" right))
-        
-         (if (zero? right)
-           num
-           (cond
-             (< left 10) (format "%.2f" num)
-             ;;(< left 1000) (format "%.2f" num)
-             :else (format "%.0f" num))))
-       
-       (str suffix)))))
-
-
-
-
 #?(:clj
    (defn cmean [[^Double mean ^Long k] ^Double v]
      [(+ mean (/ (- v mean) (inc k)))
       (inc k)]))
-
-
-
-#?(:clj
-   (defn resample-period
-     "From minute -> hour or minute -> day. Returns:
-  [[(+ tstart prec), mean of semi-closed interval (tstart (+ tstart
-  prec)]] [(+ tstart prec prec) ...] ...]
-  `(resample-period 100 0 [[t v] ...])`"
-     [prec tstart data]
-     (loop [ts (sort-by first data)
-            res []
-            tspan nil
-            tprev nil
-            mean nil ;;[mean count]
-            ]
-    
-       (if (not-empty ts)
-         (let [[t v] (first ts)]
-           (if (and tspan (<= t (+ tspan prec)))
-             ;; keep meaning
-             (recur (rest ts) res tspan t
-                    (if mean
-                      (cmean mean v)
-                      [v 1.0]))
-        
-             (if tspan
-               ;; finished current group
-               (recur ts
-                      (if mean
-                        ;; got some data in this time span
-                        (conj res [(+ tspan prec) (double (first mean))])
-                        ;; no data for current span
-                        res)
-                      (+ tspan prec)
-                      t
-                      nil)
-
-               ;; just starting
-               (recur ts res tstart nil nil))))
-      
-         (when mean
-           (if (== tprev (+ tspan prec))
-             ;; last time span is complete
-             (conj res [(+ tspan prec) (first mean)])
-             ;; last span is not complete
-             (not-empty res)))))))
-
-
-
-
-#?(:clj
-   (defn minute->precision
-     "Returns new timeseries taken from :minute and adjusted to precision.
-  `(minute->precision :price :hour coin)`"
-     [data-key precision coin]
-     (let [old-spec (:spec (add-spec (get-in coin [:data data-key precision])))
-           new-spec (:spec (add-spec (get-in coin [:data data-key :minute])))
-           
-           [start filter-start]
-           (if-let [old-start (second (:xdomain old-spec))]
-             [old-start (inc old-start)]
-             (repeat 2 (or (first (:xdomain new-spec)) 0)))
-           
-           end (or (second (:xdomain new-spec)) 0)]
-
-
-       (when (< start end)
-         (some->> (get-in coin [:data data-key :minute :data])
-                  (filter-period [filter-start end])
-                  distinct
-                  (resample-period (get pcd/precisions precision) start)
-                  (assoc-in {:slug (:slug coin)}
-                            [:data data-key precision :data]))))))
-
-
-
-
-
-#?(:clj
-   (defn minute->precision2
-     "Returns new timeseries taken from :minute and adjusted to precision.
-  `(minute->precision2 (get-in coin [:data :price]) :hour)`"
-     [precision data]
-     (let [old-spec (min-max (keep first (get-in data [precision :data])))
-           new-spec (min-max (keep first (get-in data [:minute :data])))
-           
-           [start filter-start]
-           (if-let [old-start (second old-spec)]
-             [old-start (inc old-start)]
-             (repeat 2 (or (first new-spec) 0)))
-           
-           end (or (second new-spec) 0)]
-
-       (cond-> data
-         (< start end)
-         (update-in [precision :data] (fnil into [])
-                    (some->> (filter-period [filter-start end] (get-in data [:minute :data]))
-                             distinct
-                             (resample-period (get pcd/precisions precision) start)))))))
-
-
 
 
 
@@ -332,13 +193,14 @@
 
 
 
+
 #?(:clj
-   (defn minute->precision3
+   (defn minute->precision
      "Returns new timeseries taken from :minute and adjusted to precision.
-  `(minute->precision3 :hour (get-in coin [:data :price]))`"
+  `(minute->precision :hour (get-in coin [:data :price]))`"
      [precision data]
-     (let [old-spec (min-max (keep first (get-in data [precision :data])))
-           new-spec (min-max (keep first (get-in data [:minute :data])))
+     (let [old-spec (ts-minmax (get-in data [precision :data]))
+           new-spec (ts-minmax (get-in data [:minute :data]))
            
            [start filter-start]
            (if-let [old-start (second old-spec)]
@@ -346,15 +208,6 @@
              (repeat 2 (or (first new-spec) 0)))
            
            end (or (second new-spec) 0)]
-
-       ;; return only new data
-       #_(when (< start end)
-           (transduce
-            (comp (filter-period-xf [filter-start end])
-                  (distinct))
-            (resample-rf (get pcd/precisions precision) [start end])
-            (get-in data [:minute :data])))
-
 
        ;; merge new data into old data
        (cond-> data
@@ -370,28 +223,8 @@
 
 
 
-
-
 #?(:clj
    (defn trim-precision
-     "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
-  `(trim-precision :price :hour :1m coin)`"
-     [data-key precision view coin]
-     (let [old-data (-> (get-in coin [:data data-key precision])
-                        (add-spec {:view view}))]
-       (when (not-empty (:spec old-data))
-         (some->> (filter-period (:xdomain (:spec old-data))
-                                 (:data old-data))
-                  distinct
-                  not-empty  vec
-                  (assoc-in {:slug (:slug coin)}
-                            [:data data-key precision :data]))))))
-
-
-
-
-#?(:clj
-   (defn trim-precision2
      "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
   `(trim-precision :price :hour :1m coin)`"
      [data-key precision view coin]
@@ -408,12 +241,16 @@
 
 
 
+
 #?(:clj
-   (defn trim-precision3
+   (defn trim-precision2
      [period chart-data]
-     (if-let [xdomain (->> (add-spec chart-data {:view period})
-                           :spec :xdomain)]
-       (update chart-data :data (partial filter-period xdomain))
+     (when-let [xdomain (->> (add-spec chart-data {:view period})
+                             :spec :xdomain)]
+       (some->> (:data chart-data)
+                (into [] (filter-period-xf xdomain))
+                not-empty
+                (assoc chart-data :data))
        chart-data)))
 
 
@@ -451,3 +288,41 @@
     (->> (ctc/from-long x)
          (ctf/unparse #?(:cljs {:format-str formatter}
                          :clj (ctf/formatter formatter))))))
+
+
+
+
+(def suffixes ["" "K" "M" "B"])
+
+(defn compactnum [num]
+  (if (zero? num)
+    num
+    (let [[num suffix]
+          (if (< num 50000)
+            [num ""]
+            (loop [num num
+                   [suffix & rst] suffixes]
+              (if (or (< num 1000)
+                      (empty? rst))
+                [(double num) suffix]
+                (recur (/ num 1000) rst))))
+
+          num (m/roundto num 0.001)
+          
+          [left right] ((juxt long #(- % (long %))) num)]
+      
+      (->
+       (if (zero? left)
+         (if (< right 1e-4)
+           (cl-format nil "~,3,1,,'*E" right)
+           (format "%.3f" right))
+        
+         (if (zero? right)
+           num
+           (cond
+             (< left 10) (format "%.2f" num)
+             ;;(< left 1000) (format "%.2f" num)
+             :else (format "%.0f" num))))
+       
+       (str suffix)))))
+
