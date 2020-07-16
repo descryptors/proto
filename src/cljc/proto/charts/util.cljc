@@ -235,7 +235,6 @@
                   (transduce (comp (filter-period-xf (:xdomain (:spec old-data)))
                                    (distinct))
                              conj)
-                  not-empty
                   (assoc-in {:slug (:slug coin)}
                             [:data data-key precision :data]))))))
 
@@ -245,13 +244,13 @@
 #?(:clj
    (defn trim-precision2
      [period chart-data]
-     (when-let [xdomain (->> (add-spec chart-data {:view period})
-                             :spec :xdomain)]
-       (some->> (:data chart-data)
-                (into [] (filter-period-xf xdomain))
-                not-empty
-                (assoc chart-data :data))
-       chart-data)))
+     (or
+      (when-let [xdomain (->> (add-spec chart-data {:view period})
+                              :spec :xdomain)]
+        (some->> (:data chart-data)
+                 (into [] (filter-period-xf xdomain))
+                 (assoc chart-data :data)))
+      chart-data)))
 
 
 
