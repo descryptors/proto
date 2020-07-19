@@ -145,7 +145,7 @@
 
 (binding [des/*captcha* {:answer 33}]
   (->> valid-contact
-       (apply b/validate {:email "dimovich@gmail.com"
+       (apply b/validate {:email "some.mail@gmail.com"
                           :message "hello"
                           :captcha "33"})))
 
