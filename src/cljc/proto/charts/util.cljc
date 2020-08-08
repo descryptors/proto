@@ -248,7 +248,8 @@
       (when-let [xdomain (->> (add-spec chart-data {:view period})
                               :spec :xdomain)]
         (some->> (:data chart-data)
-                 (into [] (filter-period-xf xdomain))
+                 (into [] (comp (filter-period-xf xdomain)
+                                (distinct)))
                  (assoc chart-data :data)))
       chart-data)))
 
