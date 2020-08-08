@@ -1,15 +1,15 @@
 ^{:css-dirs ["resources/public/css"]
   :watch-dirs ["src/cljs" "src/cljc"]
   :open-url false
-  :log-level :error
+  ;;:log-level :error
   ;;:connect-url "ws://[[client-hostname]]:[[client-port]]/figwheel-connect"
   :ring-server-options {:port 5000}
+  ;;:auto-bundle :webpack
   :extra-main-files {:devcards {:main proto.devcards}}}
 
 {:main proto.figwheel
  :output-to "resources/public/js/main.js"
  :output-dir "resources/public/js/out"
- :asset-path "js/out"
+ ;;:asset-path "js/out"
  :optimizations :none
- :parallel-build true
  :devcards true}

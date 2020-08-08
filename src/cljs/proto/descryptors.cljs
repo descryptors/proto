@@ -12,7 +12,7 @@
             [bouncer.validators :as bv]
             [clojure.edn :refer [read-string]]
             [hiccups.runtime]
-            [cljsjs.clipboard]
+            ;;[cljsjs.clipboard]
             [proto.mixins :refer [window-event-listener]]
             [proto.util :as u :refer [inline-html coll->pattern
                                       expand-descendants]]
@@ -676,43 +676,35 @@
 
 
 
-
-;; fixme: textarea redrawn too many times on edit.
-(defn overlay-scrollbars [props content]
+(defn scrollbars [& args]
   (let [this (r/current-component)
-        dom-size (atom nil)
-        get-size (fn [this]
-                   (->> (rd/dom-node this)
-                        ((juxt #(.-scrollWidth %)
-                               #(.-scrollHeight %)))))
         instance (atom nil)
-        init-scroll #(reset! instance
-                             (->> (clj->js {"scrollbars" {"autoHide" "leave"}})
-                                  (js/OverlayScrollbars (rd/dom-node %))))]
+        destroy-scroll (fn [] (swap! instance #(some-> % (.destroy))))
+        init-scroll (fn [this]
+                      (reset! instance
+                              (->> (clj->js {"scrollbars" {"autoHide" "leave"}})
+                                   (js/OverlayScrollbars (rd/dom-node this)))))]
     (r/create-class
      {:component-did-mount
       (fn [this]
-        (reset! dom-size (get-size this))
         (init-scroll this))
 
       :UNSAFE-component-will-update
       (fn [this _]
         (when (:dynamic? (r/props this))
-          (when-not (= @dom-size (get-size this))
-            (swap! instance (fn [inst] (when inst
-                                         (.destroy inst)
-                                         nil))))))
+          (destroy-scroll)))
       
       :component-did-update
       (fn [this _]
         (when (:dynamic? (r/props this))
-          (let [new-size (get-size this)]
-            (when-not (= @dom-size new-size)
-              (reset! dom-size new-size)
-              (init-scroll this)))))
+          (init-scroll this)))
+
+      :component-will-unmount
+      (fn []
+        (destroy-scroll))
 
       :reagent-render
-      (fn []
+      (fn [& args]
         (first (r/children this)))})))
 
 
@@ -825,7 +817,7 @@
                        :placeholder "Company"}]]
            
            [:div.form__item.form__message
-            [overlay-scrollbars
+            [scrollbars
              [editable {:id "msg"
                         :tag :textarea
                         :class "form__textarea"
@@ -1023,33 +1015,33 @@
 
 
 
-(defn clipboard
-  "[clipboard [:a {:data-clipboard-text ...}]]"
-  [[tag opts content]]
-  (let [clipboard-atom (atom nil)]
-    (r/create-class
-     {:display-name "clipboard"
-      :component-did-mount
-      #(let [clipboard (new js/ClipboardJS (rd/dom-node %))]
-         (reset! clipboard-atom clipboard))
+#_(defn clipboard
+    "[clipboard [:a {:data-clipboard-text ...}]]"
+    [[tag opts content]]
+    (let [clipboard-atom (atom nil)]
+      (r/create-class
+       {:display-name "clipboard"
+        :component-did-mount
+        #(let [clipboard (new js/ClipboardJS (rd/dom-node %))]
+           (reset! clipboard-atom clipboard))
       
-      :component-will-unmount
-      #(when-not (nil? @clipboard-atom)
-         (.destroy @clipboard-atom)
-         (reset! clipboard-atom nil))
+        :component-will-unmount
+        #(when-not (nil? @clipboard-atom)
+           (.destroy @clipboard-atom)
+           (reset! clipboard-atom nil))
       
-      :reagent-render
-      (fn []
-        [tag (update opts :on-click
-                     (fn [old-fn]
-                       (fn [evt]
-                         ;; trigger tooltip animation
-                         (when-let [dom (.. evt -target)]
-                           (d/remove-class! dom :active)
-                           (js/setTimeout
-                            #(d/add-class! dom :active)
-                            50))
-                         (when old-fn (old-fn evt)))))
-         content])})))
+        :reagent-render
+        (fn []
+          [tag (update opts :on-click
+                       (fn [old-fn]
+                         (fn [evt]
+                           ;; trigger tooltip animation
+                           (when-let [dom (.. evt -target)]
+                             (d/remove-class! dom :active)
+                             (js/setTimeout
+                              #(d/add-class! dom :active)
+                              50))
+                           (when old-fn (old-fn evt)))))
+           content])})))
 
 

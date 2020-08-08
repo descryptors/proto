@@ -11,7 +11,7 @@
         com.andrewmcveigh/cljs-time {:mvn/version "0.5.2"}
         bouncer {:mvn/version "1.0.1"}
         hiccups {:mvn/version "0.3.0"}
-        cljsjs/clipboard {:mvn/version "2.0.4-0"}
+        ;;cljsjs/clipboard {:mvn/version "2.0.4-0"}
 
         thi.ng/geom
         { ;;:mvn/version "1.0.0-RC4"
@@ -29,11 +29,11 @@
   :cider
   {:extra-paths ["resources"]
    :extra-deps {devcards/devcards {:mvn/version "0.2.7"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.11-SNAPSHOT"}}}
+                com.bhauman/figwheel-main {:mvn/version "0.2.11"}}}
   
   
   :figwheel
   {:extra-paths ["resources"]
    :extra-deps {devcards/devcards {:mvn/version "0.2.7"}
-                com.bhauman/figwheel-main {:mvn/version "0.2.11-SNAPSHOT"}}
+                com.bhauman/figwheel-main {:mvn/version "0.2.11"}}
    :main-opts ["-i scripts/sass.clj -m figwheel.main -b dev"]}}}

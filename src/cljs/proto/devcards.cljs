@@ -11,8 +11,7 @@
             [proto.figwheel :refer [coins]]
             [proto.descryptors :as des :refer [github-chart price-chart
                                                search-box toggle-theme!
-                                               overlay-scrollbars editable
-                                               gen-captcha]]
+                                               editable gen-captcha]]
             [proto.dropdown :refer [dropdown]]
             [proto.toolbar :refer [button]]
             [proto.charts.util :as pcu :refer [chart-placeholder]]
@@ -32,9 +31,54 @@
             
             [cljs-time.coerce :as ctc]
             [cljs-time.core :as ct]
-            [cljs-time.format :as cf])
+            [cljs-time.format :as cf]
+            ;;[overlayscrollbars-react :refer [OverlayScrollbarsComponent]]
+            )
   
   (:require-macros [devcards.core :as dc :refer [defcard-rg defcard]]))
+
+
+(def editable-state (r/atom ""))
+
+(def text "fdafdsfdsff\ndfgdgd\nfsdfdsf\nfsdfdsaf\nfsdfsdf")
+
+#_(defn msgbox []
+  [:> OverlayScrollbarsComponent
+   {:options {:textarea {:dyn-height true}}}
+   [:textarea {:style {:resize :none}
+               :placeholder "fdafdsfdsff\ndfgdgd\nfsdfdsf\nfsdfdsaf\nfsdfsdf"}]
+   
+   #_[des/editable {:id "msg"
+                    :tag :textarea
+                    :class "form__textarea"
+                    :style {:color :black }
+                    :state editable-state
+                    ;;:error (:message @errors)
+                    ;;:on-focus
+                    #_(fn [evt]
+                        (on-focus :message evt)
+                        (update-contact-message-error nil))
+                    ;;:disabled @disabled?
+                    :name "user_message"
+                    :placeholder "Message"}]])
+
+
+#_(defcard-rg message-box
+    [msgbox])
+
+
+
+
+
+#_(defcard-rg scrolls
+  [:div {:style {:width 100 :height 100}}
+   [:> OverlayScrollbarsComponent
+    {:options {:scrollbars {:auto-hide :leave}}}
+    [:div {:style {:width 60 :height 30}}
+     [:p
+      "Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there Hello there"]]]])
+
+
 
 
 
@@ -52,7 +96,7 @@
 
 
 
-(defn clipboard []
+#_(defn clipboard []
   [:div
    [des/clipboard
     [:a.footer__support-tag
@@ -66,7 +110,7 @@
 
 
 
-(defcard-rg clipboard
+#_(defcard-rg clipboard
   clipboard)
 
 
@@ -216,7 +260,7 @@
                        :placeholder "Company"}]]
            
            [:div.form__item.form__message
-            [overlay-scrollbars
+            [des/scrollbars
              [editable {:id "msg"
                         :tag :textarea
                         :class "form__textarea"

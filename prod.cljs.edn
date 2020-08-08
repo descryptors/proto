@@ -1,8 +1,16 @@
 {:main proto.figwheel
  :output-to "resources/public/js/main.js"
  :output-dir "resources/public/js/out"
- :asset-path "js/out"
+ ;;:asset-path "js/out"
  :externs ["externs.js"]
  :optimizations :advanced
  :pretty-print  false
- :parallel-build true}
+ ;;:parallel-build true
+ ;;:target :bundle
+ ;;:bundle-cmd
+ #_{:none ["npx" "webpack" "resources/public/js/out/main.js" "-o"
+           "resources/public/js/out/main2.js" "--mode=development"]
+    :default ["npx" "webpack" "resources/public/js/out/main.js" "-o"
+              "resources/public/js/out/main2.js"]}
+ ;;:closure-defines {cljs.core/*global* "window"}
+ }
