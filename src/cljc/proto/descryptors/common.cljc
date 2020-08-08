@@ -207,9 +207,9 @@
 
      :cljs
      (r/with-let [all-visible? (r/atom false)
-                  scroll-wrap  (if scrollbar?
-                                 [des/overlay-scrollbars {:dynamic? true}]
-                                 [identity])
+                  scrollwrap  (if scrollbar?
+                                [des/scrollbars {:dynamic? true}]
+                                [identity])
                   btn-component #(when (and btn (pos? %))
                                    [btn all-visible? %])]
        
@@ -217,7 +217,7 @@
          [:div {:class (:class opts)}
           heading
           (conj
-           scroll-wrap
+           scrollwrap
            [component
             (cond->> data
               (not @all-visible?) (take amount))
@@ -873,13 +873,12 @@
 
 
 (def support-links
-  [(cc [des/clipboard
-        [:a.footer__support-tag
-         {:data-clipboard-text ",,,"
-          #?@(:clj
-              [:href ",,,"
-               :target :blank])}
-         "support link"]])])
+  [[:a.footer__support-tag
+    {:data-clipboard-text ",,,"
+     #?@(:clj
+         [:href ",,,"
+          :target :blank])}
+    "support link"]])
 
 
 
@@ -931,7 +930,7 @@
    [:div.footer__bottom-row
     [:div.footer__copyright
      [:span "©"]
-     [:span "2019 Descryptors."]
+     [:span "2020 Descryptors."]
      [:span "All rights reserved"]]
 
     [:div.footer__copyright.footer__copyright--version
