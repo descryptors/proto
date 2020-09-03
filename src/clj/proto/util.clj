@@ -56,3 +56,9 @@
 (defmacro inline-html [html & args]
   `{:dangerouslySetInnerHTML
     {:__html (str ~html ~@args)}})
+
+
+
+(defmacro clickable [text & args]
+  (let [on-click 'on-click]
+    `[:span {:on-click #(~on-click ~@args)} ~text]))
