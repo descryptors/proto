@@ -245,92 +245,74 @@
               :on-click #(swap! all-visible? not)}]))
 
 
-(defn add-on-click [on-click param]
-  (when on-click
-    {:on-click #(on-click param)
-     :style {:cursor :pointer
-             :user-select :none}}))
 
-
-(defn exchange-row [{:as props :keys [on-click]}
-                    {:keys [idx rank name url timestamp
-                            spread-avg volume volume-usd]
-                     {:keys [usd eth btc]} :targets}]
-  [:div.table__row (dissoc props :on-click)
-   [:div.table__col.table__col--number
-    [:span (add-on-click on-click [:idx])
-     idx]]
+(defn exchange-row [props {:keys [idx rank name url timestamp
+                                  spread-avg volume volume-usd]
+                           {:keys [usd eth btc]} :targets}]
+  [:div.table__row props
+   [:div.table__col.table__col--number idx]
    [:div.table__col.table__col--name
-    [:span (add-on-click on-click [:name])
-     (if url
-       [:a {:href url :target :blank} name]
-       name)]]
-   (when usd [:div.table__col.table__col--pair
-              [:span (add-on-click on-click [:targets :usd])
-               (spacefy usd)]])
+    (if url
+      [:a {:href url :target :blank} name]
+      name)]
+   (when usd [:div.table__col.table__col--pair (spacefy usd)])
    ;;(when btc [:div.table__col.table__col--pair (spacefy btc)])
    ;;(when eth [:div.table__col.table__col--pair (spacefy eth)])
-   [:div.table__col.table__col--vol24
-    [:span (add-on-click on-click [:volume])
-     (spacefy volume 0.01)]]
-   [:div.table__col.table__col--vol24
-    [:span (add-on-click on-click [:volume-usd])
-     (spacefy volume-usd 0.01)]]
-   [:div.table__col.table__col--vol24
-    [:span (add-on-click on-click [:spread-avg])
-     (spacefy spread-avg)]]
+   [:div.table__col.table__col--vol24 (spacefy volume 0.01)]
+   [:div.table__col.table__col--vol24 (spacefy volume-usd 0.01)]
+   [:div.table__col.table__col--vol24 (spacefy spread-avg)]
    #_[:div.table__col.table__col--price price]
    #_[:div.table__col.table__col--vol-percent vol-percent]
    #_[:div.table__col.table__col--category category]
    #_[:div.table__col.table__col--fee fee]
-   [:div.table__col.table__col--updated
-    [:span (add-on-click on-click [:timestamp])
-     timestamp]]])
+   [:div.table__col.table__col--updated timestamp]])
 
 
 
 
-(defn exchanges-render [sym on-click exchanges]
+(defn exchanges-render [sym #?(:cljs on-click) exchanges]
   [:div.table
 
    ;; Header
    ;;
    (cc [exchange-row {:key "header"
-                      :on-click on-click}
-        {:idx "#" :name "Exchange"
-         :targets (some->> (:targets (first exchanges))
-                           keys
-                           (reduce
-                            (fn [m k]
-                              (->> (name k)
-                                   clojure.string/upper-case
-                                   (str sym "/")
-                                   (assoc m k)))
-                            {}))
-         :volume "Volume" :volume-usd "Volume (USD)"
-         :spread-avg "Spread (Avg)"
-         :timestamp "Updated On (GMT)"}])
+                      :class :table__row--header}
+        {:idx [:span #?(:cljs {:on-click #(on-click [:idx])}) "#"]
+         :name [:span #?(:cljs {:on-click #(on-click [:name])}) "Exchange"]
+         :targets
+         (some->> (not-empty (keys (:targets (first exchanges))))
+                  (reduce
+                   (fn [m k]
+                     (->> (name k)
+                          clojure.string/upper-case
+                          (str sym "/")
+                          (into [:span #?(:cljs {:on-click #(on-click [:targets k])})])
+                          (assoc m k)))
+                   {}))
+         :volume [:span #?(:cljs {:on-click #(on-click [:volume])}) "Volume"]
+         :volume-usd [:span #?(:cljs {:on-click #(on-click [:volume-usd])}) "Volume (USD)"]
+         :spread-avg [:span #?(:cljs {:on-click #(on-click [:spread-avg])}) "Spread (Avg)"]
+         :timestamp [:span #?(:cljs {:on-click #(on-click [:timestamp])}) "Updated On (GMT)"]}])
 
    ;; Exchange Data
    ;;
-   (->> exchanges
-        (map #(cc [exchange-row {:key (:id %)} %])))])
+   (map #(cc [exchange-row {:key (:id %)} %]) exchanges)])
 
 
-(defonce ratom #?(:clj atom :cljs r/atom))
 
 
 (defn exchanges [sym exchanges]
-  (#?(:cljs r/with-let :clj let)
-   [sort-key (ratom [:idx])
-    reverse? (ratom false)
-    on-click (partial swap! sort-key
-                      (fn [old new]
-                        (if (= old new)
-                          (do (swap! reverse? not)
-                              old)
-                          (do (reset! reverse? false)
-                              new))))]
+  (#?@(:clj [do]
+       :cljs [r/with-let
+              [sort-key (r/atom [:idx])
+               reverse? (r/atom false)
+               on-click (partial swap! sort-key
+                                 (fn [old new]
+                                   (if (= old new)
+                                     (do (swap! reverse? not)
+                                         old)
+                                     (do (reset! reverse? false)
+                                         new))))]])
    (cc [expandable
         (->
          (->> exchanges
@@ -339,14 +321,17 @@
                  (-> exchange
                      (update :timestamp exchange-timestamp)
                      (assoc :idx (inc idx)))))
-              (sort-by #(get-in % @sort-key)))
-         (cond->
-             (number? (get-in (first exchanges) @sort-key))
-             (reverse)
-             @reverse?
-             (reverse)))
+              #?(:cljs (sort-by #(get-in % @sort-key))))
+         #?(:cljs
+            (cond->
+                ;; decreasing order for numbers
+                (number? (get-in (first exchanges) @sort-key))
+                reverse
+                ;; double click reverses the order
+                @reverse?
+                reverse)))
         
-        (partial exchanges-render sym on-click)
+        (partial exchanges-render sym #?(:cljs on-click))
         
         {:amount 4
          :scrollbar? true
