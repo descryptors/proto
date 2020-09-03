@@ -1,5 +1,6 @@
 (ns proto.descryptors.common
   (:require [taoensso.timbre :refer [info]]
+            [reagent.core :as r]
             [proto.charts.util :as pcu :refer [chart-placeholder]]
             [clojure.pprint :refer [cl-format]]
             [proto.descryptors :as des :refer [price-chart github-chart]]
@@ -10,7 +11,6 @@
                       [clj-time.core :as ct]
                       [clj-time.format :as ctf]]
                 :cljs [[proto.util :refer [cc inline-html]]
-                       [reagent.core :as r]
                        [proto.dropdown :refer [dropdown]]
                        [proto.toolbar :refer [button]]
                        [goog.string :refer [format]]
@@ -246,15 +246,15 @@
 
 
 
-
 (defn exchange-row [props {:keys [idx rank name url timestamp
                                   spread-avg volume volume-usd]
                            {:keys [usd eth btc]} :targets}]
   [:div.table__row props
    [:div.table__col.table__col--number idx]
-   [:div.table__col.table__col--name (if url
-                                       [:a {:href url :target :blank} name]
-                                       name)]
+   [:div.table__col.table__col--name
+    (if url
+      [:a {:href url :target :blank} name]
+      name)]
    (when usd [:div.table__col.table__col--pair (spacefy usd)])
    ;;(when btc [:div.table__col.table__col--pair (spacefy btc)])
    ;;(when eth [:div.table__col.table__col--pair (spacefy eth)])
@@ -270,46 +270,73 @@
 
 
 
-(defn exchanges-render [sym exchanges]
+(defn exchanges-render [sym #?(:cljs on-click) exchanges]
   [:div.table
 
    ;; Header
    ;;
-   (cc [exchange-row {:key "header"}
-        {:idx "#" :name "Exchange"
-         :targets (some->> (:targets (first exchanges))
-                           keys
-                           (reduce
-                            (fn [m k]
-                              (->> (name k)
-                                   clojure.string/upper-case
-                                   (str sym "/")
-                                   (assoc m k)))
-                            {}))
-         :volume "Volume" :volume-usd "Volume (USD)"
-         :spread-avg "Spread (Avg)"
-         :timestamp "Updated On (GMT)"}])
+   (cc [exchange-row {:key "header"
+                      :class :table__row--header}
+        {:idx [:span #?(:cljs {:on-click #(on-click [:idx])}) "#"]
+         :name [:span #?(:cljs {:on-click #(on-click [:name])}) "Exchange"]
+         :targets
+         (some->> (not-empty (keys (:targets (first exchanges))))
+                  (reduce
+                   (fn [m k]
+                     (->> (name k)
+                          clojure.string/upper-case
+                          (str sym "/")
+                          (into [:span #?(:cljs {:on-click #(on-click [:targets k])})])
+                          (assoc m k)))
+                   {}))
+         :volume [:span #?(:cljs {:on-click #(on-click [:volume])}) "Volume"]
+         :volume-usd [:span #?(:cljs {:on-click #(on-click [:volume-usd])}) "Volume (USD)"]
+         :spread-avg [:span #?(:cljs {:on-click #(on-click [:spread-avg])}) "Spread (Avg)"]
+         :timestamp [:span #?(:cljs {:on-click #(on-click [:timestamp])}) "Updated On (GMT)"]}])
 
    ;; Exchange Data
    ;;
-   (->> exchanges
-        (map-indexed
-         (fn [idx exchange]
-           (cc [exchange-row {:key (:id exchange)}
-                (-> exchange
-                    (update :timestamp exchange-timestamp)
-                    (assoc :idx (inc idx)))]))))])
+   (map #(cc [exchange-row {:key (:id %)} %]) exchanges)])
 
 
 
 
 (defn exchanges [sym exchanges]
-  (cc [expandable exchanges
-       (partial exchanges-render sym)
-       {:amount 4
-        :scrollbar? true
-        :class "single__row single__row--table"
-        #?@(:cljs [:btn show-all-less-btn])}]))
+  (#?@(:clj [do]
+       :cljs [r/with-let
+              [sort-key (r/atom [:idx])
+               reverse? (r/atom false)
+               on-click (partial swap! sort-key
+                                 (fn [old new]
+                                   (if (= old new)
+                                     (do (swap! reverse? not)
+                                         old)
+                                     (do (reset! reverse? false)
+                                         new))))]])
+   (cc [expandable
+        (->
+         (->> exchanges
+              (map-indexed
+               (fn [idx exchange]
+                 (-> exchange
+                     (update :timestamp exchange-timestamp)
+                     (assoc :idx (inc idx)))))
+              #?(:cljs (sort-by #(get-in % @sort-key))))
+         #?(:cljs
+            (cond->
+                ;; decreasing order for numbers
+                (number? (get-in (first exchanges) @sort-key))
+                reverse
+                ;; double click reverses the order
+                @reverse?
+                reverse)))
+        
+        (partial exchanges-render sym #?(:cljs on-click))
+        
+        {:amount 4
+         :scrollbar? true
+         :class "single__row single__row--table"
+         #?@(:cljs [:btn show-all-less-btn])}])))
 
 
 
