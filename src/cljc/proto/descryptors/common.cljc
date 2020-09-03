@@ -10,7 +10,7 @@
             #?@(:clj [[clj-time.coerce :as ctc]
                       [clj-time.core :as ct]
                       [clj-time.format :as ctf]]
-                :cljs [[proto.util :refer [cc inline-html]]
+                :cljs [[proto.util :refer [cc inline-html clickable]]
                        [proto.dropdown :refer [dropdown]]
                        [proto.toolbar :refer [button]]
                        [goog.string :refer [format]]
@@ -30,6 +30,11 @@
    (defmacro inline-html [html & args]
      `(str ~html ~@args)))
 
+
+
+#?(:clj
+   (defmacro clickable [text & args]
+     `~text))
 
 
 (defn spacefy
@@ -277,22 +282,21 @@
    ;;
    (cc [exchange-row {:key "header"
                       :class :table__row--header}
-        {:idx [:span #?(:cljs {:on-click #(on-click [:idx])}) "#"]
-         :name [:span #?(:cljs {:on-click #(on-click [:name])}) "Exchange"]
+        {:idx  (clickable "#" [:idx])
+         :name (clickable "Exchange" [:name])
          :targets
          (some->> (not-empty (keys (:targets (first exchanges))))
                   (reduce
                    (fn [m k]
-                     (->> (name k)
-                          clojure.string/upper-case
-                          (str sym "/")
-                          (into [:span #?(:cljs {:on-click #(on-click [:targets k])})])
-                          (assoc m k)))
+                     (let [pair (->> (name k)
+                                     clojure.string/upper-case
+                                     (str sym "/"))]
+                       (assoc m k (clickable pair [:targets k]))))
                    {}))
-         :volume [:span #?(:cljs {:on-click #(on-click [:volume])}) "Volume"]
-         :volume-usd [:span #?(:cljs {:on-click #(on-click [:volume-usd])}) "Volume (USD)"]
-         :spread-avg [:span #?(:cljs {:on-click #(on-click [:spread-avg])}) "Spread (Avg)"]
-         :timestamp [:span #?(:cljs {:on-click #(on-click [:timestamp])}) "Updated On (GMT)"]}])
+         :volume     (clickable "Volume" [:volume])
+         :volume-usd (clickable "Volume (USD)" [:volume-usd])
+         :spread-avg (clickable "Spread (Avg)" [:spread-avg])
+         :timestamp  (clickable "Updated On (GMT)" [:timestamp])}])
 
    ;; Exchange Data
    ;;
@@ -302,41 +306,38 @@
 
 
 (defn exchanges [sym exchanges]
-  (#?@(:clj [do]
-       :cljs [r/with-let
-              [sort-key (r/atom [:idx])
-               reverse? (r/atom false)
-               on-click (partial swap! sort-key
-                                 (fn [old new]
-                                   (if (= old new)
-                                     (do (swap! reverse? not)
-                                         old)
-                                     (do (reset! reverse? false)
-                                         new))))]])
-   (cc [expandable
-        (->
-         (->> exchanges
-              (map-indexed
-               (fn [idx exchange]
-                 (-> exchange
-                     (update :timestamp exchange-timestamp)
-                     (assoc :idx (inc idx)))))
-              #?(:cljs (sort-by #(get-in % @sort-key))))
-         #?(:cljs
-            (cond->
-                ;; decreasing order for numbers
-                (number? (get-in (first exchanges) @sort-key))
-                reverse
-                ;; double click reverses the order
-                @reverse?
-                reverse)))
+  (let [exchanges' (map-indexed
+                    (fn [idx exchange]
+                      (-> exchange
+                          (update :timestamp exchange-timestamp)
+                          (assoc :idx (inc idx))))
+                    exchanges)]
+    (#?@(:clj [do]
+         :cljs [r/with-let
+                [sort-key (r/atom [:idx])
+                 reverse? (r/atom false)
+                 on-click (partial swap! sort-key
+                                   (fn [old new]
+                                     (if (= old new)
+                                       (do (swap! reverse? not)
+                                           old)
+                                       (do (reset! reverse? false)
+                                           new))))]])
+     (cc [expandable
+          #?(:clj exchanges'
+             :cljs
+             (cond-> (sort-by #(get-in % @sort-key) exchanges')
+               ;; decreasing order for numbers
+               (number? (get-in (first exchanges) @sort-key)) reverse
+               ;; double click reverses the order
+               @reverse? reverse))
         
-        (partial exchanges-render sym #?(:cljs on-click))
+          (partial exchanges-render sym #?(:cljs on-click))
         
-        {:amount 4
-         :scrollbar? true
-         :class "single__row single__row--table"
-         #?@(:cljs [:btn show-all-less-btn])}])))
+          {:amount 4
+           :scrollbar? true
+           :class "single__row single__row--table"
+           #?@(:cljs [:btn show-all-less-btn])}]))))
 
 
 
