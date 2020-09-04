@@ -281,7 +281,7 @@
    ;; Header
    ;;
    (cc [exchange-row {:key "header"
-                      :class :table__row--header}
+                      :class "table__row--header"}
         {:idx  (clickable "#" [:idx])
          :name (clickable "Exchange" [:name])
          :targets
