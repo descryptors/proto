@@ -143,12 +143,12 @@
 
 
 
-(def exchanges-coin (nth coins 4))
+(def exchanges-coin (r/atom (nth coins 0)))
 
 (defcard-rg exchanges
   [:div.single
-   [common/exchanges (:symbol exchanges-coin)
-    (get-in exchanges-coin [:data :exchanges])
+   [common/exchanges (:symbol @exchanges-coin)
+    (get-in @exchanges-coin [:data :exchanges])
     #_samples/exchanges]
 
    #_[common/social-media "Reddit News"

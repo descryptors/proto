@@ -59,6 +59,8 @@
 
 
 
-(defmacro clickable [text & args]
+(defmacro clickable
+  "Wrap text in span with locally bound on-click fn."
+  [text & args]
   (let [on-click 'on-click]
     `[:span {:on-click #(~on-click ~@args)} ~text]))
