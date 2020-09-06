@@ -277,7 +277,7 @@
 
 (defn exchanges-render [sym #?(:cljs on-click) exchanges]
   [:div.table
-
+   
    ;; Header
    ;;
    (cc [exchange-row {:key "header"
@@ -306,23 +306,23 @@
 
 
 (defn exchanges [sym exchanges]
-  (let [exchanges' (map-indexed
-                    (fn [idx exchange]
-                      (-> exchange
-                          (update :timestamp exchange-timestamp)
-                          (assoc :idx (inc idx))))
-                    exchanges)]
-    (#?@(:clj [do]
-         :cljs [r/with-let
-                [sort-key (r/atom [:idx])
-                 reverse? (r/atom false)
-                 on-click (partial swap! sort-key
-                                   (fn [old new]
-                                     (if (= old new)
-                                       (do (swap! reverse? not)
-                                           old)
-                                       (do (reset! reverse? false)
-                                           new))))]])
+  (#?@(:clj [do]
+       :cljs [r/with-let
+              [sort-key (r/atom [:idx])
+               reverse? (r/atom false)
+               on-click (partial swap! sort-key
+                                 (fn [old new]
+                                   (if (= old new)
+                                     (do (swap! reverse? not)
+                                         old)
+                                     (do (reset! reverse? false)
+                                         new))))]])
+   (let [exchanges' (map-indexed
+                     (fn [idx exchange]
+                       (-> exchange
+                           (update :timestamp exchange-timestamp)
+                           (assoc :idx (inc idx))))
+                     exchanges)]
      (cc [expandable
           #?(:clj exchanges'
              :cljs
