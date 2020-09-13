@@ -64,7 +64,7 @@
 (defn ts-mean [ts]
   (->> ts
        ((juxt (comp (partial reduce +)
-                    (partial map second))
+                    (partial map #(nth % 1)))
               count))
        (apply /)))
 
@@ -73,7 +73,7 @@
 (defn ts-variance [ts]
   (let [mean (ts-mean ts)
         amount' (dec (count ts))
-        xs (map second ts)]
+        xs (map #(nth % 1) ts)]
     (->> xs
          (map #(-> (- % mean)
                    (Math/pow 2)
@@ -90,7 +90,8 @@
 (def get-size (comp (partial apply -) reverse))
 (def remove-nils (filter (partial not-any? nil?)))
 
-(defn ts-minmax [ts] (some->> ts (keep first) not-empty min-max))
+(defn minmax-idx [idx coll]
+  (some->> (into [] (keep #(nth % idx)) coll) not-empty min-max))
 
 
 
@@ -114,13 +115,12 @@
   with :view. Use transducer `data-xf` to extract [x y] from data."
   [{:keys [data spec] :as chart-data}
    & [{:as opts :keys [data-xf view size]
-       :or {data-xf (map (juxt first second))}}]]
+       :or {data-xf (map (juxt #(nth % 0) #(nth % 1)))}}]]
 
   ;; move cleanup to higher fn?
-  (if-let [data (->> data
-                     (sequence (comp data-xf remove-nils))
-                     not-empty)]
-    (let [[xstart xend]  (->> data (map first) min-max)
+  (if-let [data (not-empty
+                 (into [] (comp data-xf remove-nils) data))]
+    (let [[xstart xend]  (minmax-idx 0 data)
           xperiod  (some->> view (get xgrid-spec) :period)
           xdomain  (if xperiod
                      [(- xend xperiod) xend]
@@ -130,8 +130,8 @@
                  (filter-period xdomain data)
                  data)
 
-          [ystart yend] (->> data (map second) min-max)
-           
+          [ystart yend] (minmax-idx 1 data)
+          
           ydomain (if (= ystart yend)
                     [0 (inc yend)] ;;fixme: better way?
 
@@ -179,10 +179,11 @@
     
        ([coll]
         (->> (persistent! coll)
-             ;; [[t1 mean1] ...]
-             (map (juxt first (comp first second)))
-             ;; remove incomplete samples
-             (filter #(<= (first %) end))))
+             (into [] (comp
+                       ;; remove incomplete samples
+                       (filter #(<= (key %) end))
+                       ;; [[t1 mean1] ...]
+                       (map (juxt key (comp #(nth % 0) val)))))))
     
        ([coll [^Long t ^Double v]]
         (let [ ;; t in semi-open interval (start (+ start step)] -> (+ start step)
@@ -199,8 +200,8 @@
      "Returns new timeseries taken from :minute and adjusted to precision.
   `(minute->precision :hour (get-in coin [:data :price]))`"
      [precision data]
-     (let [old-spec (ts-minmax (get-in data [precision :data]))
-           new-spec (ts-minmax (get-in data [:minute :data]))
+     (let [old-spec (minmax-idx 0 (get-in data [precision :data]))
+           new-spec (minmax-idx 0 (get-in data [:minute :data]))
            
            [start filter-start]
            (if-let [old-start (second old-spec)]
@@ -232,7 +233,8 @@
                         (add-spec {:view view}))]
        (when (not-empty (:spec old-data))
          (some->> (:data old-data)
-                  (transduce (comp (filter-period-xf (:xdomain (:spec old-data)))
+                  (transduce (comp (filter-period-xf
+                                    (:xdomain (:spec old-data)))
                                    (distinct))
                              conj)
                   (assoc-in {:slug (:slug coin)}
@@ -244,14 +246,13 @@
 #?(:clj
    (defn trim-precision2
      [period chart-data]
-     (or
-      (when-let [xdomain (->> (add-spec chart-data {:view period})
-                              :spec :xdomain)]
-        (some->> (:data chart-data)
-                 (into [] (comp (filter-period-xf xdomain)
-                                (distinct)))
-                 (assoc chart-data :data)))
-      chart-data)))
+     (if-let [xdomain (->> (add-spec chart-data {:view period})
+                           :spec :xdomain)]
+       (some->> (:data chart-data)
+                (into [] (comp (filter-period-xf xdomain)
+                               (distinct)))
+                (assoc chart-data :data))
+       chart-data)))
 
 
 
@@ -261,9 +262,7 @@
   "Check if there is enough data for at least half of view period."
   [data view]
   (let [{:keys [precision period]} (get pcd/xgrid-spec view)]
-    (some-> (map first (get-in data [precision :data]))
-            not-empty
-            min-max
+    (some-> (minmax-idx 0 (get-in data [precision :data]))
             get-size
             (/ period)
             (>= 0.5))))
