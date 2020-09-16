@@ -128,35 +128,37 @@
 
 
 
-(defn add-ticks [{:as chart-data :keys [data spec]}
-                 & [{:as opts :keys [screen xticks? yticks?]
-                     :or {screen :desktop}}]]
+(defn add-ticks
+  ([chart-data] (add-ticks {} chart-data))
+  ([{:as opts :keys [screen xticks? yticks?]
+     :or {screen :desktop}}
+    {:as chart-data :keys [data spec]}]
   
-  (let [{:keys [xdomain ydomain ysize]} spec
-        [xstart xend] xdomain
-        [ystart yend] ydomain
+   (let [{:keys [xdomain ydomain ysize]} spec
+         [xstart xend] xdomain
+         [ystart yend] ydomain
 
-        view (:view spec)
+         view (:view spec)
         
-        xmajor (when xticks?
-                 (some-> (get xgrid-spec view)
-                         (get-in [:major screen])))
+         xmajor (when xticks?
+                  (some-> (get xgrid-spec view)
+                          (get-in [:major screen])))
         
-        ymajor (when yticks?
-                 (some->> (get-in ygrid-spec [:rows screen])
-                          (/ ysize)))]
+         ymajor (when yticks?
+                  (some->> (get-in ygrid-spec [:rows screen])
+                           (/ ysize)))]
     
-    (->>
-     (cond-> {}
-       xmajor
-       (merge {:xmajor xmajor
-               :xformatter (pcu/date-formatter (get-in xgrid-spec [view :formatter]))})
+     (->>
+      (cond-> {}
+        xmajor
+        (merge {:xmajor xmajor
+                :xformatter (pcu/date-formatter (get-in xgrid-spec [view :formatter]))})
        
-       ymajor
-       (merge {:ymajor (/ (- yend ystart) (get-in ygrid-spec [:rows screen]))
-               :yformatter pcu/compactnum}))
+        ymajor
+        (merge {:ymajor (/ (- yend ystart) (get-in ygrid-spec [:rows screen]))
+                :yformatter pcu/compactnum}))
      
-     (update chart-data :spec merge))))
+      (update chart-data :spec merge)))))
 
 
 
@@ -270,8 +272,9 @@
       (fn [_]
         (when (pcu/enough-data? data view)
           (some-> (get data (get-in pcd/xgrid-spec [view :precision]))
-                  (pcu/add-spec opts)
-                  (cond-> ;; add grid lines
+                  (cond->>
+                      :default (pcu/add-spec opts)
+                      ;; add grid lines
                       (or xticks? yticks?)
                       (add-ticks {:xticks? xticks? :yticks? yticks?}))
                   line-chart)))))

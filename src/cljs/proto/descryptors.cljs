@@ -515,13 +515,13 @@
       (if @dom-size
         (let [[width height :as size] @dom-size]
           [:div {:dangerouslySetInnerHTML
-                 {:__html (-> chart-data
-                              (cl/add-ticks
-                               (assoc opts :screen
-                                      (cond
-                                        (< 400 width 600) :sm
-                                        (<= width 400) :xs
-                                        :else :desktop)))
+                 {:__html (-> (assoc opts :screen
+                                     (cond
+                                       (< 400 width 600) :sm
+                                       (<= width 400) :xs
+                                       :else :desktop))
+                              
+                              (cl/add-ticks chart-data)
                               (assoc-in [:spec :size] size)
                               (view-fn) :data hiccups/html)}}])
         placeholder)]]))
@@ -609,10 +609,8 @@
                ;;
                (:data view-data)
                [dynamic-chart {:class chart-class}
-                (-> view-data
-                    (cu/add-spec {:view @view :size size})
-                    #_(update :data (partial cu/period-precision
-                                             (get cd/precisions @view defaults/chart-period))))
+                (->> view-data
+                     (cu/add-spec {:view @view :size size}))
                 (assoc opts :placeholder empty-space)]
                
                :else placeholder)

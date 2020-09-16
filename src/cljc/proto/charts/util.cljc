@@ -61,26 +61,21 @@
 
 
 
-(defn ts-mean [ts]
-  (->> ts
-       ((juxt (comp (partial reduce +)
-                    (partial map #(nth % 1)))
-              count))
-       (apply /)))
+
+(defn mean [xs]
+  (/ (reduce + xs) (count xs)))
 
 
 
-(defn ts-variance [ts]
-  (let [mean (ts-mean ts)
-        amount' (dec (count ts))
-        xs (map #(nth % 1) ts)]
-    (->> xs
-         (map #(-> (- % mean)
-                   (Math/pow 2)
-                   (/ amount')))
-         (reduce +)
-         Math/sqrt)))
-
+(defn standard-deviation [xs]
+  (let [a (mean xs)
+        amount (dec (count xs))]
+    (Math/sqrt
+     (transduce
+      (map #(-> (- % a)
+                (Math/pow 2)
+                (/ amount)))
+      + xs))))
 
 
 
@@ -98,66 +93,64 @@
 (defn filter-period [[start end] data]
   (filter
    (fn [[timestamp _]]
-     (m/in-range? start end timestamp))
+     (m/in-range? start end ^Long timestamp))
    data))
 
 
 
 (defn filter-period-xf [[start end]]
   (filter
-   (fn [[timestamp _]]
-     (m/in-range? start end timestamp))))
+   (fn [tv]
+     (m/in-range? start end ^Long (nth tv 0)))))
 
 
 
 (defn add-spec
   "Calculate common values and add it to :spec. Enforce period
-  with :view. Use transducer `data-xf` to extract [x y] from data."
-  [{:keys [data spec] :as chart-data}
-   & [{:as opts :keys [data-xf view size]
-       :or {data-xf (map (juxt #(nth % 0) #(nth % 1)))}}]]
+  with :view."
+  ([chart-data] (add-spec {} chart-data))
+  ([{:as opts :keys [view]}
+    {:keys [data spec] :as chart-data}]
 
-  ;; move cleanup to higher fn?
-  (if-let [data (not-empty
-                 (into [] (comp data-xf remove-nils) data))]
-    (let [[xstart xend]  (minmax-idx 0 data)
-          xperiod  (some->> view (get xgrid-spec) :period)
-          xdomain  (if xperiod
-                     [(- xend xperiod) xend]
-                     [xstart xend])
+   (let [[xstart xend]  (minmax-idx 0 data)]
+     (if (and xstart xend)
+       (let [xperiod (some->> view (get xgrid-spec) :period)
+             xdomain (if xperiod
+                       [(- xend xperiod) xend]
+                       [xstart xend])
 
-          data (if xperiod
-                 (filter-period xdomain data)
-                 data)
+             data (if xperiod
+                    (filter-period xdomain data)
+                    data)
 
-          [ystart yend] (minmax-idx 1 data)
-          
-          ydomain (if (= ystart yend)
-                    [0 (inc yend)] ;;fixme: better way?
+             [ystart yend] (minmax-idx 1 data)
 
-                    (if (< (ts-variance data) 0.005)
-                      ;; low variance
-                      (let [oney (* 2 (- yend ystart))]
-                        [(max 0 (- ystart oney))  (+ yend oney)])
+             ydomain (if (= ystart yend)
+                       [0 (inc yend)] ;;fixme: better way?
+                      
+                       (let [sd (standard-deviation
+                                 (into [] (map #(nth % 1)) data))]
+                         (if (< sd 0.005)
+                           ;; low variance
+                           (let [oney (* 2 (- yend ystart))]
+                             [(max 0 (- ystart oney))  (+ yend oney)])
 
-                      ;; normal
-                      [ystart yend]))
-           
-          xsize (get-size xdomain)
-          ysize (get-size ydomain)]
-
-       
-       
-      (->> {:xdomain xdomain
-            :ydomain ydomain
-            :xsize xsize
-            :ysize ysize}
+                           ;; normal
+                           [ystart yend])))
             
-           (merge (dissoc opts :data-fn))
-     
-           (update chart-data :spec merge)))
-    
-    chart-data))
+             xsize (get-size xdomain)
+             ysize (get-size ydomain)]
+
+        
+         (->> {:xdomain xdomain
+               :ydomain ydomain
+               :xsize xsize
+               :ysize ysize}
+              
+              (merge opts)
+              (update chart-data :spec merge)))
+
+       chart-data))))
 
 
 
@@ -179,6 +172,8 @@
     
        ([coll]
         (->> (persistent! coll)
+             ;;(map (juxt first (comp first second)))
+             ;;(filter #(<= (first %) end))
              (into [] (comp
                        ;; remove incomplete samples
                        (filter #(<= (key %) end))
@@ -229,8 +224,8 @@
      "Returns trimmed data from {:<data-key> {:<precision> {:data [...}}}
   `(trim-precision :price :hour :1m coin)`"
      [data-key precision view coin]
-     (let [old-data (-> (get-in coin [:data data-key precision])
-                        (add-spec {:view view}))]
+     (let [old-data (->> (get-in coin [:data data-key precision])
+                         (add-spec {:view view}))]
        (when (not-empty (:spec old-data))
          (some->> (:data old-data)
                   (transduce (comp (filter-period-xf
@@ -246,7 +241,8 @@
 #?(:clj
    (defn trim-precision2
      [period chart-data]
-     (if-let [xdomain (->> (add-spec chart-data {:view period})
+     (if-let [xdomain (->> chart-data
+                           (add-spec {:view period})
                            :spec :xdomain)]
        (some->> (:data chart-data)
                 (into [] (comp (filter-period-xf xdomain)
