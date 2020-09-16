@@ -81,12 +81,12 @@
 
 
 
-(def min-max  (juxt (partial reduce min) (partial reduce max)))
+(def minmax (juxt (partial reduce min) (partial reduce max)))
 (def get-size (comp (partial apply -) reverse))
 (def remove-nils (filter (partial not-any? nil?)))
 
 (defn minmax-idx [idx coll]
-  (some->> (into [] (keep #(nth % idx)) coll) not-empty min-max))
+  (some->> (into [] (keep #(nth % idx)) coll) not-empty minmax))
 
 
 
@@ -156,14 +156,6 @@
 
 
 #?(:clj
-   (defn cmean [[^Double mean ^Long k] ^Double v]
-     [(+ mean (/ (- v mean) (inc k)))
-      (inc k)]))
-
-
-
-
-#?(:clj
    (defn resample-rf
      "Reducing fn for transducers, resampling data with step precision."
      [^Long step [^Long start ^Long end]]
@@ -178,13 +170,18 @@
                        ;; remove incomplete samples
                        (filter #(<= (key %) end))
                        ;; [[t1 mean1] ...]
-                       (map (juxt key (comp #(nth % 0) val)))))))
+                       (map (juxt key (comp #(/ (first %) (second %))
+                                            val)))))))
     
        ([coll [^Long t ^Double v]]
-        (let [ ;; t in semi-open interval (start (+ start step)] -> (+ start step)
+        (let [ ;; t in semi-open interval (start (+ start step)]
+              ;; rounded to (+ start step)
               k (+ step (- (dec t) (mod (- (dec t) start) step)))
-              mean (get coll k)]
-          (assoc! coll k (if mean (cmean mean v) [v 1.0])))))))
+              agg (get coll k)]
+          (assoc! coll k (if agg
+                           [(+ v (nth agg 0))
+                            (inc (nth agg 1))]
+                           [v 1])))))))
 
 
 
