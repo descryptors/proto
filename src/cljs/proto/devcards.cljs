@@ -434,12 +434,12 @@
 
 
 (comment
-  (-> coins
-      first
-      :data :price
-      (pcu/add-spec {:view :1d})
-      (line/add-ticks {:view :1d :size :default})
-      :spec)
+  (->> coins
+       first
+       :data :price
+       (pcu/add-spec {:view :1d})
+       (line/add-ticks {:view :1d :size :default})
+       :spec)
 
 
 
