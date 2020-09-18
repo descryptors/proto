@@ -90,7 +90,7 @@
 
 
 
-(defn filter-period [[start end] data]
+(defn filter-period [[^Long start ^Long end] data]
   (filter
    (fn [[timestamp _]]
      (m/in-range? start end ^Long timestamp))
@@ -98,7 +98,7 @@
 
 
 
-(defn filter-period-xf [[start end]]
+(defn filter-period-xf [[^Long start ^Long end]]
   (filter
    (fn [tv]
      (m/in-range? start end ^Long (nth tv 0)))))
@@ -164,8 +164,6 @@
     
        ([coll]
         (->> (persistent! coll)
-             ;;(map (juxt first (comp first second)))
-             ;;(filter #(<= (first %) end))
              (into [] (comp
                        ;; remove incomplete samples
                        (filter #(<= (key %) end))
@@ -182,7 +180,6 @@
                            [(+ v (nth agg 0))
                             (inc (nth agg 1))]
                            [v 1])))))))
-
 
 
 
