@@ -14,6 +14,22 @@
         ")\\b")))
 
 
+
+(defn deep-merge
+  {:arglists '([& maps])}
+  ([])
+  ([a] a)
+  ([a b]
+   (if (map? a)
+     (if (map? b)
+       (merge-with deep-merge a b)
+       a)
+     b))
+  ([a b & more]
+   (apply merge-with deep-merge a b more)))
+
+
+
 (defn expand-descendants [coll]
   (reduce #(if-let [des (descendants %2)]
              (into %1 des)

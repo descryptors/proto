@@ -469,15 +469,15 @@
 
 (def coin-price (-> coins (nth 4) :data :price))
 
-(def minmax (->> (:data coin-price) (map first) pcu/min-max))
+(def minmax (->> (:data coin-price) (pcu/minmax-idx 0)))
 
 
 
 (->> (pcu/filter-period [(- (second minmax) (->> :1w (get cd/xgrid-spec) :period))
-                        (second minmax)]
-                       (:data coin-price))
+                         (second minmax)]
+                        (:data coin-price))
      
-     (map first) pcu/min-max pcu/get-size)
+     (pcu/minmax-idx 0) pcu/get-size)
 
 (->> :1w (get cd/xgrid-spec) :period)
 

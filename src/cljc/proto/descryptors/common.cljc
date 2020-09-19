@@ -10,7 +10,9 @@
             #?@(:clj [[clj-time.coerce :as ctc]
                       [clj-time.core :as ct]
                       [clj-time.format :as ctf]]
-                :cljs [[proto.util :refer [cc inline-html clickable]]
+                :cljs [[reagent.dom :as rd]
+                       [dommy.core :as d]
+                       [proto.util :refer [cc inline-html clickable]]
                        [proto.dropdown :refer [dropdown]]
                        [proto.toolbar :refer [button]]
                        [goog.string :refer [format]]
@@ -202,7 +204,7 @@
   display all data and no expand button, for ClojureScript will
   display amount of data and the expand button."
   [data component
-   {:as opts :keys [amount scrollbar? heading btn inner-btn?]
+   {:as opts :keys [amount scrollbars heading btn inner-btn?]
     :or {amount 3}}]
 
   #?(:clj
@@ -211,26 +213,44 @@
       (component (take amount data))]
 
      :cljs
-     (r/with-let [all-visible? (r/atom false)
-                  scrollwrap  (if scrollbar?
-                                [des/scrollbars {:dynamic? true}]
-                                [identity])
-                  btn-component #(when (and btn (pos? %))
-                                   [btn all-visible? %])]
-       
-       (let [remaining (- (count data) amount)]
-         [:div {:class (:class opts)}
-          heading
-          (conj
-           scrollwrap
-           [component
-            (cond->> data
-              (not @all-visible?) (take amount))
-            (when inner-btn?
-              [btn-component remaining])])
+     (let [all-visible? (r/atom false)
+           prev-visible? (atom false)
+           scrollwrap  (if scrollbars
+                         [des/scrollbars {:dynamic? true
+                                          :opts scrollbars}]
+                         [identity])
+           btn-component #(when (and btn (pos? %))
+                            [btn all-visible? %])]
 
-          (when-not inner-btn?
-            [btn-component remaining])]))))
+
+       (r/create-class
+        {:component-did-update
+         (fn [this _]
+           (when (and @prev-visible? (not @all-visible?))
+             (let [top (:top
+                        (d/bounding-client-rect
+                         (rd/dom-node this)))]
+               (when (neg? top)
+                 (window.scroll 0 (+ top window.pageYOffset -10)))))
+           
+           (reset! prev-visible? @all-visible?))
+
+         :reagent-render
+         (fn [data component
+              {:as opts :keys [amount heading btn inner-btn?]}]
+           (let [remaining (- (count data) amount)]
+             [:div {:class (:class opts)}
+              heading
+              (conj
+               scrollwrap
+               [component
+                (cond->> data
+                  (not @all-visible?) (take amount))
+                (when inner-btn?
+                  [btn-component remaining])])
+
+              (when-not inner-btn?
+                [btn-component remaining])]))}))))
 
 
 
@@ -335,7 +355,7 @@
           (partial exchanges-render sym #?(:cljs on-click))
         
           {:amount 4
-           :scrollbar? true
+           :scrollbars true
            :class "single__row single__row--table"
            #?@(:cljs [:btn show-all-less-btn])}]))))
 
@@ -428,16 +448,16 @@
 
 #?(:cljs
    (defn show-more-number-btn [all-visible? remaining]
-     (when-not @all-visible?
-       [:div.more.more--number
-        {:on-click #(swap! all-visible? not)}
-        (str "+" remaining)])))
+     [:div.more.more--number
+      {:on-click #(swap! all-visible? not)}
+      (if @all-visible?
+        "-" (str "+" remaining))]))
 
 
 
 (defn team-render [xs & [more-btn]]
   (if (not-empty xs)
-    [:div
+    [:div.single__team
      (for [[x roles] xs]
        (let [wrapper (cond
                        (:founder roles) founder
@@ -455,7 +475,8 @@
        {:amount 5
         :heading [:label.single__label "People"]
         :class "single__column-item"
-        :inner-btn? true
+        :scrollbars {"scrollbars" {"visibility" "visible"
+                                   "autoHide" "never"}}
         #?@(:cljs [:btn show-more-number-btn])}]))
 
 
@@ -466,7 +487,7 @@
 
 (defn used-by-render [xs & [more-btn]]
   (if (not-empty xs)
-    [:div
+    [:div.single__used-by
      (for [x xs]
        ^{:key x} [:div x])
      more-btn]
@@ -479,7 +500,8 @@
        {:amount 3
         :heading [:label.single__label "Used by"]
         :class "single__column-item"
-        :inner-btn? true
+        :scrollbars {"scrollbars" {"visibility" "visible"
+                                   "autoHide" "never"}}
         #?@(:cljs [:btn show-more-number-btn])}]))
 
 
