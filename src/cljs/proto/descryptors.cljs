@@ -14,8 +14,8 @@
             [hiccups.runtime]
             ;;[cljsjs.clipboard]
             [proto.mixins :refer [window-event-listener]]
-            [proto.util :as u :refer [inline-html coll->pattern
-                                      expand-descendants]]
+            [proto.util :as pu :refer [inline-html coll->pattern
+                                       expand-descendants]]
             [proto.charts.util   :as cu :refer [export-viz]]
             [proto.charts.matrix :refer [matrix-chart]]
             [proto.charts.bar    :refer [bar-chart]]
@@ -444,7 +444,7 @@
         (reset! ratom "")))))
 
 
-(defonce throttle200 (u/throttler 200))
+(defonce throttle200 (pu/throttler 200))
 (defonce sticky-class (r/atom ""))
 (def sticky-check-fn (sticky-checker sticky-class 420))
 (def check-sticky #(throttle200 sticky-check-fn))
@@ -492,7 +492,7 @@
   (r/with-let [this (r/current-component)
                dom-node  (atom nil)
                dom-size  (r/atom nil)
-               debounce  (u/debouncer 200)
+               debounce  (pu/debouncer 200)
                get-size! (fn [dom]
                            (let [chart-data (first (r/children this))
                                  [width height] (:size (:spec chart-data))
@@ -674,14 +674,21 @@
 
 
 
+(def scrollbar-opts
+  {"scrollbars" {"autoHide" "leave"}})
+
+
+
 (defn scrollbars [& args]
   (let [this (r/current-component)
         instance (atom nil)
+        opts (->> (:opts (r/props this))
+                  (pu/deep-merge scrollbar-opts)
+                  clj->js)
         destroy-scroll (fn [] (swap! instance #(some-> % (.destroy))))
         init-scroll (fn [this]
-                      (reset! instance
-                              (->> (clj->js {"scrollbars" {"autoHide" "leave"}})
-                                   (js/OverlayScrollbars (rd/dom-node this)))))]
+                      (->> (js/OverlayScrollbars (rd/dom-node this) opts)
+                           (reset! instance)))]
     (r/create-class
      {:component-did-mount
       (fn [this]
