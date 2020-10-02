@@ -2,8 +2,8 @@
  
  :deps {org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/clojurescript {:mvn/version "1.10.773"}
-        com.taoensso/encore {:mvn/version "2.126.2"}
-        com.taoensso/timbre {:mvn/version "4.10.0"}
+        com.taoensso/encore {:mvn/version "3.4.0"}
+        com.taoensso/timbre {:mvn/version "5.1.0"}
         frankiesardo/linked {:mvn/version "1.3.0"}
         prismatic/dommy {:mvn/version "1.1.0"}
         reagent {:mvn/version "0.10.0"}
@@ -14,7 +14,6 @@
         ;;cljsjs/clipboard {:mvn/version "2.0.4-0"}
 
         thi.ng/geom
-        { ;;:mvn/version "1.0.0-RC4"
-         ;; version without ndarray
+        { ;; version without ndarray
          :git/url "https://github.com/dimovich/geom"
          :sha "0de32866ff85533e0a57bf4567917f1a5c70aabc"}}}
