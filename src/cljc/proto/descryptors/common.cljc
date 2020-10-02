@@ -928,28 +928,36 @@
      #?@(:clj
          [:href ",,,"
           :target :blank])}
-    "support link"]])
+    "support link"]
+   ,,,])
 
 
 
 ;; todo: don't align vertical for < 550px, but keep them horizontal
 
 (defn footer-support [support-links]
-  #?(:cljs
-     (r/with-let [show-icons? (r/atom false)]
-       (into
-        [:div.footer__support-wrapper]
-        (if @show-icons?
-          support-links
-          [[:a.footer__support-link
-            {:on-click #(reset! show-icons? true)}
-            "Support Us"]])))
+  (if-not (< 1 (count support-links))
+    [:div.footer__support-wrapper
+     [:a.footer__support-link
+      {:href (first support-links)
+       :target :blank}
+      "Support Us"]]
+    
+    #?(:cljs
+       (r/with-let [show-icons? (r/atom false)]
+         (into
+          [:div.footer__support-wrapper]
+          (if @show-icons?
+            support-links
+            [[:a.footer__support-link
+              {:on-click #(reset! show-icons? true)}
+              "Support Us"]])))
 
-     :clj
-     (into
-      [:div.footer__support-wrapper
-       [:span.footer__support-link "Support Us"]]
-      support-links)))
+       :clj
+       (into
+        [:div.footer__support-wrapper
+         [:span.footer__support-link "Support Us"]]
+        support-links))))
 
 
 
