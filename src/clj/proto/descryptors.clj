@@ -4,8 +4,6 @@
 
 
 
-(def clipboard identity)
-
 
 (defn descryptor-chart
   "General chart component."
