@@ -443,7 +443,7 @@
              ;;
              (when (= cp :index)
                [footer {:version "build 8e1246a (Hmeli-Suneli)"
-                        :support-links ["https://github.com/descryptors/descryptors#support-us"]
+                        :support-links common/support-links
                         :logo-opts {:on-click #(window.scroll 0 0)}
                         :terms-opts {:on-click #(swap! app-db assoc :show-terms true)}
                         :about-opts {:on-click #(swap! app-db assoc :show-about true)}

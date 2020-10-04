@@ -923,12 +923,13 @@
 
 
 (def support-links
-  [[:a.footer__support-tag
-    {:data-clipboard-text ",,,"
-     #?@(:clj
-         [:href ",,,"
-          :target :blank])}
-    "support link"]
+  [defaults/support-link
+   #_[:a.footer__support-tag
+      {:data-clipboard-text ",,,"
+       #?@(:clj
+           [:href ",,,"
+            :target :blank])}
+      "support link"]
    ,,,])
 
 

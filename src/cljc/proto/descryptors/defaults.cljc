@@ -65,6 +65,9 @@
 
 
 
+(def support-link "https://github.com/descryptors/descryptors#support-us")
+
+
 (def src-logo     "/img/logo.svg")
 (def src-homepage "/img/homepage.svg")
 
