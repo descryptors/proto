@@ -250,7 +250,7 @@
 
 (defn enough-data?
   "Check if there is enough data for at least half of view period."
-  [data view]
+  [view data]
   (let [{:keys [precision period]} (get pcd/xgrid-spec view)]
     (some-> (minmax-idx 0 (get-in data [precision :data]))
             get-size
@@ -262,7 +262,7 @@
 (defn enough-data-spec?
   "Check if there is enough data (based on spec) for at least half of
   view period."
-  [data view]
+  [view data]
   (let [{:keys [precision period]} (get pcd/xgrid-spec view)]
     (some-> (get-in data [precision :spec :xsize])
             (/ period)
