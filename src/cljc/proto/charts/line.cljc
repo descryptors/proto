@@ -270,7 +270,7 @@
      (update-in
       data [:svg view]
       (fn [_]
-        (when (pcu/enough-data? data view)
+        (when (pcu/enough-data? view data)
           (some-> (get data (get-in pcd/xgrid-spec [view :precision]))
                   (cond->>
                       :default (pcu/add-spec opts)
