@@ -17,10 +17,12 @@
 (def price-period-single :1m)
 (def git-period-single   :1y)
 
-(def github-precision
-  (->> chart-period
-       (get pcd/xgrid-spec)
-       :precision))
+
+(def chart-precision
+  (:precision (get pcd/xgrid-spec chart-period)))
+
+(def price-precision  chart-precision)
+(def github-precision chart-precision)
 
 
 (def mobile-breakpoint 750)
