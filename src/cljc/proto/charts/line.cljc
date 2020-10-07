@@ -152,11 +152,12 @@
       (cond-> {}
         xmajor
         (merge {:xmajor xmajor
-                :xformatter (pcu/date-formatter (get-in xgrid-spec [view :formatter]))})
+                :xformatter (or (:xformatter spec)
+                                (pcu/date-formatter (get-in xgrid-spec [view :formatter])))})
        
         ymajor
         (merge {:ymajor (/ (- yend ystart) (get-in ygrid-spec [:rows screen]))
-                :yformatter pcu/compactnum}))
+                :yformatter (or (:yformatter spec) pcu/compactnum)}))
      
       (update chart-data :spec merge)))))
 
@@ -171,7 +172,7 @@
             xminor  xmajor yminor ymajor
             ymargin ydist xmargin xdist
             size font-size xformatter yformatter
-            formatter line-width font-size grid-width]
+            formatter line-width grid-width]
      [width height] :size
      [ystart yend] :ydomain
      :or {line-width "1.3px" grid-width "1px" attribs {}
