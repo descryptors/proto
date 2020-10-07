@@ -40,21 +40,21 @@
         :1m {:cols {:desktop 6
                     :sm 5
                     :xs 3}
-             :formatter "D MMM"
+             :formatter "d MMM"
              :precision :hour
              :days 30}
 
         :6m {:cols {:desktop 6
                     :sm 5
                     :xs 4}
-             :formatter "D MMM"
+             :formatter "d MMM"
              :precision :day
              :days 180}
 
         :1y {:cols {:desktop 6
                     :sm 5
                     :xs 4}
-             :formatter "D MMM"
+             :formatter "d MMM"
              :precision :day
              :days 360}}
 
