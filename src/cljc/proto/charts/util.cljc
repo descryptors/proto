@@ -109,7 +109,7 @@
   "Calculate common values and add it to :spec. Enforce period
   with :view."
   ([chart-data] (add-spec {} chart-data))
-  ([{:as opts :keys [view]}
+  ([{:as opts :keys [view ydomain]}
     {:keys [data spec] :as chart-data}]
 
    (let [[xstart xend]  (minmax-idx 0 data)]
@@ -124,6 +124,9 @@
                     data)
 
              [ystart yend] (minmax-idx 1 data)
+             [ystart yend :as ydomain]
+             [(or (first  ydomain) ystart)
+              (or (second ydomain) yend)]
 
              ydomain (if (= ystart yend)
                        [0 (inc yend)] ;;fixme: better way?
