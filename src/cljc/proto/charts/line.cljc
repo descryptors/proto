@@ -146,7 +146,8 @@
         
          ymajor (when yticks?
                   (some->> (get-in ygrid-spec [:rows screen])
-                           (/ ysize)))]
+                           (/ ysize)
+                           double))]
     
      (->>
       (cond-> {}
