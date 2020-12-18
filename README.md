@@ -1,4 +1,4 @@
-## Proto
+# Proto
 
 > "Prototyping cuts the work to produce a system by 40 percent."
 > — Larry Bernstein, Bell Communications Research
@@ -27,8 +27,12 @@ clj -A:figwheel
 This will start Figwheel which will build the ClojureScript code. After the compilation is done, open `localhost:5000` in your browser. You can also navigate to `localhost:5000/devcards.html` to use Devcards.
 
 
+## Screenshot
 
-## License
+<img src="/resources/descryptors.png">
+
+
+# License
 
 Copyright © 2020 Descryptors team
 

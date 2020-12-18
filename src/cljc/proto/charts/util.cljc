@@ -68,11 +68,11 @@
 
 
 (defn standard-deviation [xs]
-  (let [a (mean xs)
+  (let [avg (mean xs)
         amount (dec (count xs))]
     (Math/sqrt
      (transduce
-      (map #(-> (- % a)
+      (map #(-> (- % avg)
                 (Math/pow 2)
                 (/ amount)))
       + xs))))
@@ -160,7 +160,7 @@
 
 #?(:clj
    (defn resample-rf
-     "Reducing fn for transducers, resampling data with step precision."
+     "Reducing fn for transducers. Resamples data with step precision."
      [^Long step [^Long start ^Long end]]
      (fn
        ([] (transient {}))
@@ -171,7 +171,8 @@
                        ;; remove incomplete samples
                        (filter #(<= (key %) end))
                        ;; [[t1 mean1] ...]
-                       (map (juxt key (comp #(/ (first %) (second %))
+                       (map (juxt key (comp double
+                                            #(/ (first %) (second %))
                                             val)))))))
     
        ([coll [^Long t ^Double v]]
