@@ -159,7 +159,7 @@
           ;;
           [editable
            {:state local-text
-            :auto-focus true
+            ;;:auto-focus true
             :class "search-input-field"
             :placeholder "search"
             :on-key-down
